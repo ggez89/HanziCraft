@@ -27,7 +27,8 @@ app.get('/api/pinyin', (req, res) => {
   }
 });
 
-// Serve local stroke order data
+// Serve local stroke order data (first from committed project data, then node_modules fallback)
+app.use('/data/strokes', express.static(path.join(__dirname, 'data/strokes')));
 app.use('/data/strokes', express.static(path.join(__dirname, 'node_modules/hanzi-writer-data')));
 
 // Serve static assets from project root

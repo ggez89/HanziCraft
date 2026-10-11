@@ -1,12 +1,48 @@
 /*
 *	Creates Pdf from given params.
 *	characters, charPinyin : String arrays
-*	numberOfGrayscaleSigns : int
-*	writePinyin, useGridlines, writeName : Booleans
+*	charSizeOrTrace : int (Character size in mm: 12-24, or fallback trace count)
+*	writePinyin, useGridlines, writeName, pasteSoImages : Booleans
 *	docTitle, filename, wayOfRetrieval : Strings
+*	enableTrace : Boolean (optional)
 */
-function createPdf(docTitle, characters, numberOfGrayscaleSigns, pasteSoImages, writePinyin, useGridlines, writeName, filename, charPinyin, wayOfRetrieval){
+function getLayoutConfig(charSize) {
+	charSize = Math.max(12, Math.min(24, Number(charSize) || 17));
+	var numCols, rowsPerPage, label;
+	if (charSize <= 12) { numCols = 15; rowsPerPage = 13; label = 'Compact'; }
+	else if (charSize <= 13) { numCols = 14; rowsPerPage = 12; label = 'Small'; }
+	else if (charSize <= 14) { numCols = 13; rowsPerPage = 12; label = 'Small'; }
+	else if (charSize <= 15) { numCols = 12; rowsPerPage = 11; label = 'Medium'; }
+	else if (charSize <= 17) { numCols = 11; rowsPerPage = 11; label = 'Standard'; }
+	else if (charSize <= 19) { numCols = 10; rowsPerPage = 10; label = 'Medium-Large'; }
+	else if (charSize <= 21) { numCols = 9; rowsPerPage = 9; label = 'Large'; }
+	else { numCols = 8; rowsPerPage = 8; label = 'Jumbo'; }
+	
+	var practiceSquares = numCols - 1;
+	var traceSquares = Math.max(1, Math.min(practiceSquares, Math.round(practiceSquares * 0.38)));
+	var printableWidth = 187; // mm (210 - 23mm margins)
+	var cellWidth = printableWidth / numCols;
+	var cellHeight = cellWidth;
+	
+	return {
+		charSize: charSize,
+		label: label,
+		numCols: numCols,
+		practiceSquares: practiceSquares,
+		traceSquares: traceSquares,
+		rowsPerPage: rowsPerPage,
+		cellWidth: cellWidth,
+		cellHeight: cellHeight,
+		printableWidth: printableWidth
+	};
+}
+window.getLayoutConfig = getLayoutConfig;
+
+function createPdf(docTitle, characters, charSizeOrTrace, pasteSoImages, writePinyin, useGridlines, writeName, filename, charPinyin, wayOfRetrieval, enableTrace, fontStyleParam){
 	try {
+		var fontStyle = (fontStyleParam === 'kaiti' || (!fontStyleParam && typeof $ !== 'undefined' && $('#selected-font-style').val() === 'kaiti')) ? 'kaiti' : 'sans';
+		var chineseFontName = (fontStyle === 'kaiti') ? 'AR PL UKai CN' : 'WenQuanYiZenHei';
+
 		// make filename "filesystem-secure"
 		filename = filename.replace(/[^a-z0-9öäüß\s\-\_\u4E00-\u9FFF]/gi, '');
 		filename = filename == "" ? "my-chinese-exercise" : filename;
@@ -14,164 +50,232 @@ function createPdf(docTitle, characters, numberOfGrayscaleSigns, pasteSoImages, 
 		$("#substatus").html("Starting to create your PDF");
 		// new jsPDF-doc
 		var doc = new jsPDF();
-		// import font to jsPDF (Clean Sans-Serif WenQuanYi Zen Hei & Noto Sans)
-		$("#substatus").html("Adding Chinese sans-serif font");
-		doc.addFileToVFS('wqy-zenhei.ttf', WqyZenHeiBase64);
-		doc.addFont('wqy-zenhei.ttf', 'WenQuanYiZenHei', 'normal');
+		// import font to jsPDF
+		if (fontStyle === 'kaiti' && typeof ArPlUkaiCnBase64 !== 'undefined') {
+			$("#substatus").html("Adding Chinese KaiTi calligraphy font");
+			doc.addFileToVFS('AR PL UKai CN.ttf', ArPlUkaiCnBase64);
+			doc.addFont('AR PL UKai CN.ttf', 'AR PL UKai CN', 'normal');
+		} else if (typeof WqyZenHeiBase64 !== 'undefined') {
+			$("#substatus").html("Adding Chinese sans-serif font");
+			doc.addFileToVFS('wqy-zenhei.ttf', WqyZenHeiBase64);
+			doc.addFont('wqy-zenhei.ttf', 'WenQuanYiZenHei', 'normal');
+		}
 		$("#substatus").html("Adding Pīnyīn font");
 		doc.addFileToVFS('NotoSans-Regular.ttf', pinyinFontBase64);
 		doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
 		// set style of ends of lines (for good looking corners)
 		doc.setLineCap("projecting");
-		// draw character lines: 11 characters per page, 11 characters per line
+
+		// Resolve layout config from character size
+		var charSize = (typeof charSizeOrTrace === 'number' && charSizeOrTrace >= 12 && charSizeOrTrace <= 25) ? charSizeOrTrace : 17;
+		var layout = getLayoutConfig(charSize);
+		var numCols = layout.numCols;
+		var charsPerPage = layout.rowsPerPage;
+		var charCellWidth = layout.cellWidth;
+		var charLineHeight = layout.cellHeight;
+		var numberOfGrayscaleSigns = (enableTrace === false) ? 0 : ((typeof charSizeOrTrace === 'number' && charSizeOrTrace < 11) ? charSizeOrTrace : layout.traceSquares);
+
+		// draw character lines
 		$("#substatus").html("Writing character lines (line <span class='amountDone'>0</span>/" + characters.length + ")");
 		var i;
 		var j;
 		var xUpLeft = 14;								// x position of the first character line on a page = left indent
-		var charLineHeight = 17;						// height of a character line
-		var charCellWidth = 17;							// width of a character cell
-		var yUpLeft = 25;								// y position of the first character line on a page = top indent + distance between character lines
-		var charLineDistance = charLineHeight + 6.6;	// distance between the UPPER strokes of the char lines
+		var yUpLeft = 23;								// y position start on page
+		var availableRowHeight = 281 - yUpLeft;			// vertical space for all rows (258 mm)
+		var charLineDistance = availableRowHeight / charsPerPage; // distance between character row baselines
+		var subRowSpace = Math.max(5.0, charLineDistance - charLineHeight);
 		var thisLineYUpLeft;
-		var curPage = 1;		// current page
-		var charsPerPage = 11;
-		var imgProp;
-		var totalPages = Math.ceil(characters.length/charsPerPage); // total number of pages (pre-computed)
-		for(i = 0; i < characters.length; ++i){
-			if(i%charsPerPage == 0){ // if we're at the beginning of a page
-				if(i != 0){ // if reached beginning of new page (i \in {9,19,29,...}) => add new page (& focus on it)
+		var curPage = 1;								// current page
+		var totalPages = Math.max(1, Math.ceil(characters.length / charsPerPage)); // total number of pages (pre-computed)
+		var totalRows = totalPages * charsPerPage;
+		var rightMarginX = xUpLeft + numCols * charCellWidth;
+
+		for(i = 0; i < totalRows; ++i){
+			if(i % charsPerPage == 0){ // if we're at the beginning of a page
+				if(i != 0){ // if reached beginning of new page => add new page (& focus on it)
 					doc.addPage();
 					curPage++;
 				}
 				// line on top of the page
-				doc.line(xUpLeft, 17, 201, 17);
+				doc.setDrawColor(0, 0, 0);
+				doc.setLineWidth(0.5);
+				doc.line(xUpLeft, 17, rightMarginX, 17);
 				// write "姓名：" if the user wanted it
 				if(writeName){
-					doc.setFont('WenQuanYiZenHei');
+					doc.setFont(chineseFontName);
 					doc.setFontSize(11); //in pt
-					doc.text("姓名：", xUpLeft, 16);
+					doc.text("姓名：", xUpLeft, 15);
+					doc.setDrawColor(148, 163, 184); // slate-400
+					doc.setLineWidth(0.25);
+					doc.line(xUpLeft + 13, 15.5, xUpLeft + 42, 15.5);
+					doc.setDrawColor(0, 0, 0);
 				}
 				// write doc title
-					doc.setFont('WenQuanYiZenHei');
-					doc.setFontSize(14); //in pt
-					doc.text(docTitle, 105, 16, 'center'); // A4_width/2 = 210 mm/2 = 105
-				// write page number
+				doc.setFont(chineseFontName);
+				doc.setFontSize(14); //in pt
+				doc.text(docTitle, 105, 15, 'center'); // A4_width/2 = 210 mm/2 = 105
+				// write page number only if more than 1 page (suppress 1/1 on single page)
+				if(totalPages > 1){
 					doc.setFont('NotoSans');
 					doc.setFontSize(10); //in pt
-					doc.text(curPage + "/" + totalPages, 201, 16, 'right'); // 201 is 210-rightIndent
-				// footer matching web preview and user image (Globe icon + hanzi.patrickyou.ng) aligned at left margin
-					doc.setFont('NotoSans');
-					doc.setFontSize(8.5); //in pt
-					doc.setTextColor("#64748B"); // slate-500
-					var footerDomain = 'hanzi.patrickyou.ng';
-					var footerDomainWidth = doc.getTextWidth(footerDomain);
-					var footerY = 289; // Fixed at bottom of A4 sheet (297mm height)
-					var footerLeftX = xUpLeft; // Aligned at left margin (14mm)
+					doc.text(curPage + "/" + totalPages, rightMarginX, 15, 'right');
+				}
+				// footer matching https://github.com/ggez89/mathletics (Globe size 16 + MousePointer2 size 9 + hanzi.patrickyou.ng) aligned at left margin
+				doc.setFont('NotoSans');
+				doc.setFontSize(9.5); //in pt
+				doc.setTextColor(148, 163, 184); // slate-400
+				var footerDomain = 'hanzi.patrickyou.ng';
+				var footerDomainWidth = doc.getTextWidth(footerDomain);
+				var footerY = 289; // Fixed at bottom of A4 sheet (297mm height)
+				var footerLeftX = xUpLeft; // Aligned at left margin (14mm)
 
-					// Draw globe icon with cursor arrow matching image
-					var iconRadius = 1.6;
-					var iconCenterX = footerLeftX + iconRadius;
-					var iconCenterY = footerY - 1.0;
+				// Thin border line above footer
+				doc.setDrawColor(226, 232, 240); // slate-200
+				doc.setLineWidth(0.25);
+				doc.line(xUpLeft, 283, rightMarginX, 283);
 
-					doc.setDrawColor("94A3B8"); // slate-400
-					doc.setLineWidth(0.2);
-					doc.circle(iconCenterX, iconCenterY, iconRadius, 'S');
-					doc.line(iconCenterX - iconRadius, iconCenterY, iconCenterX + iconRadius, iconCenterY);
-					doc.ellipse(iconCenterX, iconCenterY, iconRadius * 0.45, iconRadius, 'S');
-					doc.line(iconCenterX + 1.0, iconCenterY + 1.0, iconCenterX + 2.0, iconCenterY + 2.0);
+				// Draw globe icon matching Lucide Globe (size 16)
+				var iconRadius = 2.1;
+				var iconCenterX = footerLeftX + iconRadius + 0.2;
+				var iconCenterY = footerY - 1.2;
 
-					var textX = iconCenterX + iconRadius + 2.0;
-					doc.text(footerDomain, textX, footerY, 'left');
-					doc.link(footerLeftX, footerY - 3.5, footerDomainWidth + 8, 5, { url: 'https://hanzi.patrickyou.ng' });
+				doc.setDrawColor(148, 163, 184); // slate-400
+				doc.setLineWidth(0.28);
+				// Globe outer circle
+				doc.circle(iconCenterX, iconCenterY, iconRadius, 'S');
+				// Equator line
+				doc.line(iconCenterX - iconRadius, iconCenterY, iconCenterX + iconRadius, iconCenterY);
+				// Meridian ellipse (curved meridian lines)
+				doc.ellipse(iconCenterX, iconCenterY, iconRadius * 0.44, iconRadius, 'S');
 
-					doc.setTextColor("#000000"); // restore black text color
-					doc.setDrawColor("000000");
+				// Lucide MousePointer2 cursor arrow (size 9 placed at -bottom-0.5 -right-0.5)
+				var pX = iconCenterX + 0.9;
+				var pY = iconCenterY + 0.9;
+				doc.setFillColor(148, 163, 184);
+				doc.setDrawColor(148, 163, 184);
+				doc.setLineWidth(0.2);
+				doc.triangle(pX, pY, pX + 1.8, pY + 0.7, pX + 1.1, pY + 1.1, 'FD');
+				doc.triangle(pX, pY, pX + 1.1, pY + 1.1, pX + 0.7, pY + 1.8, 'FD');
+
+				var textX = iconCenterX + iconRadius + 2.6;
+				doc.text(footerDomain, textX, footerY, 'left');
+				doc.link(footerLeftX, footerY - 4, footerDomainWidth + 10, 6, { url: 'https://hanzi.patrickyou.ng' });
+
+				doc.setTextColor(0, 0, 0); // restore black text color
+				doc.setDrawColor(0, 0, 0);
 			}
-			thisLineYUpLeft = yUpLeft + (i%charsPerPage) * charLineDistance;
-			// paste hanzi-write Stroke Order SVGs
-				if(pasteSoImages){
-					// calculate starting X offset right after Pinyin
-					var pinyinOffset = 0;
-					if(writePinyin && charPinyin && charPinyin[i]){
-						doc.setFont('NotoSans');
-						doc.setFontSize(12);
-						pinyinOffset = Math.max(14, doc.getTextWidth(charPinyin[i]) + 3);
-					}
-					// this is the div which contains the stroke order of the character "characters[i]"
-					var charSvgsEl = document.getElementById('strokeOrderSvgs-' + characters[i]);
-					var charSvgs = charSvgsEl ? charSvgsEl.childNodes : [];
-					// draw every "stroke order element" (= the partial character after k strokes)
-					for(var k = 0; k < charSvgs.length; k++){
-						if(charSvgs[k] && charSvgs[k].nodeType === 1){
-							svg2pdf(charSvgs[k], doc, {
-								xOffset: xUpLeft + pinyinOffset + k * 7.2,
-								yOffset: thisLineYUpLeft - 6.6,
-								scale: 1
-							});
-						}
-					}
-				}
-			// gridlines - part 1
-				if(useGridlines){
-					doc.setDrawColor("D0D0D0");
-					// horizontal lines for all of the characters in the character line
-					doc.line(	xUpLeft,
-								thisLineYUpLeft + 0.5 * charLineHeight,
-								xUpLeft + 11 * charCellWidth,
-								thisLineYUpLeft + 0.5 * charLineHeight);
-					doc.setDrawColor("000000");
-				}
-			// write pinyin
-				if(writePinyin){
+
+			thisLineYUpLeft = yUpLeft + (i % charsPerPage) * charLineDistance + subRowSpace;
+			var isCharLine = (i < characters.length);
+
+			// paste hanzi-writer Stroke Order SVGs (only for characters)
+			if(isCharLine && pasteSoImages){
+				// calculate starting X offset right after Pinyin
+				var pinyinOffset = 0;
+				if(writePinyin && charPinyin && charPinyin[i]){
 					doc.setFont('NotoSans');
-					doc.setFontSize(12); //in pt
-					doc.text(charPinyin[i] || '', xUpLeft, thisLineYUpLeft-1.5); // "-1.5" looks better
+					doc.setFontSize(10);
+					pinyinOffset = Math.max(13, doc.getTextWidth(charPinyin[i]) + 3);
 				}
-			// single characters along the character line
-			doc.setFont('WenQuanYiZenHei');
-			doc.setFontSize(40); //in pt
-			for(j = 0; j < 12; ++j){ // 11 chars per line
-				// gridlines - part 2
-					if(useGridlines && j < 11){
-						doc.setDrawColor("D0D0D0");
-						// vertical line per character
-						doc.line(
-							xUpLeft + (j+0.5) * charCellWidth,	// x1
-							thisLineYUpLeft,					// y1
-							xUpLeft + (j+0.5) * charCellWidth,	// x2
-							thisLineYUpLeft + charLineHeight);	// y2
-						// 2 diagonal lines per character
-							doc.setLineCap("round");
-							// "⭸" left top --> right bottom
-							doc.line(
-								xUpLeft + j * charCellWidth,		// x1
-								thisLineYUpLeft,					// y1
-								xUpLeft + (j+1) * charCellWidth,	// x2
-								thisLineYUpLeft + charLineHeight);	// y2
-							// "⭷" left bottom --> right top
-							doc.line(
-								xUpLeft + j * charCellWidth,		// x1
-								thisLineYUpLeft + charLineHeight,	// y1
-								xUpLeft + (j+1) * charCellWidth,	// x2
-								thisLineYUpLeft);					// y2
-							doc.setLineCap("projecting");
-						doc.setDrawColor("000000");
+				var charSvgsEl = document.getElementById('strokeOrderSvgs-' + characters[i]);
+				var charSvgs = charSvgsEl ? charSvgsEl.childNodes : [];
+				var strokeScale = Math.min(1.0, Math.max(0.65, charLineHeight / 17));
+				var strokeStep = 7.2 * strokeScale;
+				var strokeY = thisLineYUpLeft - Math.max(5.5, subRowSpace * 0.88);
+
+				for(var k = 0; k < charSvgs.length; k++){
+					if(charSvgs[k] && charSvgs[k].nodeType === 1){
+						svg2pdf(charSvgs[k], doc, {
+							xOffset: xUpLeft + pinyinOffset + k * strokeStep,
+							yOffset: strokeY,
+							scale: strokeScale
+						});
 					}
-				// vertical lines
-				doc.line(xUpLeft + j * charCellWidth, thisLineYUpLeft, xUpLeft + j * charCellWidth, thisLineYUpLeft + charLineHeight);
-				// write first char (j=0) and grey chars (j=1,...,11)
-				if(j == 1) doc.setTextColor("#D0D0D0");  // set color to grey, so the supporting characters will be in grey
-				if(j == 11) doc.setTextColor("#000000"); // reset color to black
-				if(j <= numberOfGrayscaleSigns){ // it's either the first, black sign (j==0) or one of the grayscale signs (j=1,2,...,numberOfGrayscaleSigns)
-					doc.text(characters[i], xUpLeft + (j + 0.5) * charCellWidth, thisLineYUpLeft + charLineHeight - 3, 'center');
 				}
-			};
-			// upper line
-			doc.line(xUpLeft, thisLineYUpLeft, xUpLeft + 11 * charCellWidth, thisLineYUpLeft);
-			// lower line
-			doc.line(xUpLeft, thisLineYUpLeft + charLineHeight, xUpLeft + 11 * charCellWidth, thisLineYUpLeft + charLineHeight);
-			$(".amountDone").html(i);
-		};
+			}
+
+			// gridlines - part 1 (horizontal midline)
+			if(useGridlines){
+				doc.setDrawColor(203, 213, 225); // slate-300
+				doc.setLineWidth(0.2);
+				doc.line(
+					xUpLeft,
+					thisLineYUpLeft + 0.5 * charLineHeight,
+					rightMarginX,
+					thisLineYUpLeft + 0.5 * charLineHeight
+				);
+				doc.setDrawColor(0, 0, 0);
+			}
+
+			// write pinyin
+			if(isCharLine && writePinyin){
+				doc.setFont('NotoSans');
+				doc.setFontSize(Math.max(8.5, Math.min(11, charLineHeight * 0.65)));
+				doc.text(charPinyin[i] || '', xUpLeft, thisLineYUpLeft - 1.5);
+			}
+
+			// single characters along the character line
+			doc.setFont(chineseFontName);
+			doc.setFontSize(Math.round(charLineHeight * 1.88)); // scales cleanly with character size (e.g. 32pt for 17mm)
+			var charBaselineY = thisLineYUpLeft + charLineHeight * 0.78;
+
+			for(j = 0; j < numCols; ++j){
+				// gridlines - part 2 (vertical & diagonal guidelines)
+				if(useGridlines){
+					doc.setDrawColor(203, 213, 225); // slate-300
+					doc.setLineWidth(0.2);
+					// vertical midline per character
+					doc.line(
+						xUpLeft + (j + 0.5) * charCellWidth,
+						thisLineYUpLeft,
+						xUpLeft + (j + 0.5) * charCellWidth,
+						thisLineYUpLeft + charLineHeight
+					);
+					// 2 diagonal lines per character
+					doc.setLineCap("round");
+					// "⭸" left top --> right bottom
+					doc.line(
+						xUpLeft + j * charCellWidth,
+						thisLineYUpLeft,
+						xUpLeft + (j + 1) * charCellWidth,
+						thisLineYUpLeft + charLineHeight
+					);
+					// "⭷" left bottom --> right top
+					doc.line(
+						xUpLeft + j * charCellWidth,
+						thisLineYUpLeft + charLineHeight,
+						xUpLeft + (j + 1) * charCellWidth,
+						thisLineYUpLeft
+					);
+					doc.setLineCap("projecting");
+					doc.setDrawColor(0, 0, 0);
+				}
+
+				// write reference character (j=0) and faint trace characters (j=1...numberOfGrayscaleSigns)
+				if(isCharLine){
+					if(j === 0){
+						doc.setTextColor(0, 0, 0); // Reference character in crisp black
+						doc.text(characters[i], xUpLeft + 0.5 * charCellWidth, charBaselineY, 'center');
+					} else if(j <= numberOfGrayscaleSigns){
+						doc.setTextColor(203, 213, 225); // Faint trace characters in slate-300
+						doc.text(characters[i], xUpLeft + (j + 0.5) * charCellWidth, charBaselineY, 'center');
+					}
+				}
+			}
+
+			// Outer cell box borders (all vertical separators)
+			doc.setDrawColor(100, 116, 139); // slate-500
+			doc.setLineWidth(0.35);
+			for(j = 0; j <= numCols; ++j){
+				doc.line(xUpLeft + j * charCellWidth, thisLineYUpLeft, xUpLeft + j * charCellWidth, thisLineYUpLeft + charLineHeight);
+			}
+			// upper line of row
+			doc.line(xUpLeft, thisLineYUpLeft, rightMarginX, thisLineYUpLeft);
+			// lower line of row
+			doc.line(xUpLeft, thisLineYUpLeft + charLineHeight, rightMarginX, thisLineYUpLeft + charLineHeight);
+
+			$(".amountDone").html(Math.min(i + 1, characters.length));
+		}
 
 		// Output document with robust Blob delivery
 		var pdfBlob = doc.output('blob');
