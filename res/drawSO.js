@@ -28,13 +28,33 @@
 // main function
 function drawSO(reallyDoIt, character, callback){
 	if(reallyDoIt){
-		HanziWriter.loadCharacterData(character).then(function(charData) {
-			var target = document.getElementById('strokeOrderSvgs-' + character);
-			for (var drawSOiterator = 0; drawSOiterator < charData.strokes.length; drawSOiterator++) {
-				var strokesPortion = charData.strokes.slice(0, drawSOiterator + 1);
-				renderFanningStrokes(target, strokesPortion);
+		HanziWriter.loadCharacterData(character, {
+			charDataLoader: function(char, onComplete, onErr) {
+				$.getJSON('/data/strokes/' + encodeURIComponent(char) + '.json')
+					.done(function(data) {
+						onComplete(data);
+					})
+					.fail(function() {
+						// Fallback to CDN only if local file is missing
+						$.getJSON('https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/' + encodeURIComponent(char) + '.json')
+							.done(function(data) { onComplete(data); })
+							.fail(function() { if (onErr) onErr(); });
+					});
 			}
+		}).then(function(charData) {
+			var target = document.getElementById('strokeOrderSvgs-' + character);
+			if (target && charData && charData.strokes) {
+				for (var drawSOiterator = 0; drawSOiterator < charData.strokes.length; drawSOiterator++) {
+					var strokesPortion = charData.strokes.slice(0, drawSOiterator + 1);
+					renderFanningStrokes(target, strokesPortion);
+				}
+			}
+			callback();
+		}).catch(function(err){
+			console.warn("Could not load stroke order for " + character, err);
+			callback();
 		});
+	} else {
+		callback();
 	}
-	callback();
 }

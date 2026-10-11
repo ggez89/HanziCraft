@@ -1,0 +1,9 @@
+{
+  "name": "Chinese Character Worksheets",
+  "description": "Tool to create worksheets for Chinese character writing practice with stroke orders, pinyin, and gridlines.",
+  "prompt": "Tool to create worksheets for Chinese character writing practice",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "permissions": []
+}

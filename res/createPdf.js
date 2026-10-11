@@ -6,23 +6,24 @@
 *	docTitle, filename, wayOfRetrieval : Strings
 */
 function createPdf(docTitle, characters, numberOfGrayscaleSigns, pasteSoImages, writePinyin, useGridlines, writeName, filename, charPinyin, wayOfRetrieval){
-	// make filename "filesystem-secure"
+	try {
+		// make filename "filesystem-secure"
 		filename = filename.replace(/[^a-z0-9öäüß\s\-\_\u4E00-\u9FFF]/gi, '');
 		filename = filename == "" ? "my-chinese-exercise" : filename;
-	// notify user
+		// notify user
 		$("#substatus").html("Starting to create your PDF");
-	// new jsPDF-doc
+		// new jsPDF-doc
 		var doc = new jsPDF();
-	// import font to jsPDF
-		$("#substatus").html("Adding Chinese font");
-		doc.addFileToVFS('AR PL UKai CN.ttf', ArPlUkaiCnBase64);
-		doc.addFont('AR PL UKai CN.ttf', 'AR PL UKai CN', 'normal');
+		// import font to jsPDF (Clean Sans-Serif WenQuanYi Zen Hei & Noto Sans)
+		$("#substatus").html("Adding Chinese sans-serif font");
+		doc.addFileToVFS('wqy-zenhei.ttf', WqyZenHeiBase64);
+		doc.addFont('wqy-zenhei.ttf', 'WenQuanYiZenHei', 'normal');
 		$("#substatus").html("Adding Pīnyīn font");
 		doc.addFileToVFS('NotoSans-Regular.ttf', pinyinFontBase64);
-		doc.addFont('NotoSans-Regular.ttf', 'Noto Sans', 'normal');
-	// set style of ends of lines (for good looking corners)
+		doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+		// set style of ends of lines (for good looking corners)
 		doc.setLineCap("projecting");
-	// draw character lines: 11 characters per page, 11 characters per line
+		// draw character lines: 11 characters per page, 11 characters per line
 		$("#substatus").html("Writing character lines (line <span class='amountDone'>0</span>/" + characters.length + ")");
 		var i;
 		var j;
@@ -30,7 +31,7 @@ function createPdf(docTitle, characters, numberOfGrayscaleSigns, pasteSoImages, 
 		var charLineHeight = 17;						// height of a character line
 		var charCellWidth = 17;							// width of a character cell
 		var yUpLeft = 25;								// y position of the first character line on a page = top indent + distance between character lines
-		var charLineDistance = charLineHeight + 7.4;	// distance between the UPPER strokes of the char lines
+		var charLineDistance = charLineHeight + 6.6;	// distance between the UPPER strokes of the char lines
 		var thisLineYUpLeft;
 		var curPage = 1;		// current page
 		var charsPerPage = 11;
@@ -46,44 +47,68 @@ function createPdf(docTitle, characters, numberOfGrayscaleSigns, pasteSoImages, 
 				doc.line(xUpLeft, 17, 201, 17);
 				// write "姓名：" if the user wanted it
 				if(writeName){
-					doc.setFont('AR PL UKai CN');
+					doc.setFont('WenQuanYiZenHei');
 					doc.setFontSize(11); //in pt
 					doc.text("姓名：", xUpLeft, 16);
 				}
 				// write doc title
-					doc.setFont('AR PL UKai CN');
+					doc.setFont('WenQuanYiZenHei');
 					doc.setFontSize(14); //in pt
 					doc.text(docTitle, 105, 16, 'center'); // A4_width/2 = 210 mm/2 = 105
 				// write page number
-					doc.setFont('Noto Sans');
+					doc.setFont('NotoSans');
 					doc.setFontSize(10); //in pt
-					//doc.text("第" + curPage + "页，共" + totalPages + "页", 201, 16, 'right'); // 201 is 210-rightIndent
 					doc.text(curPage + "/" + totalPages, 201, 16, 'right'); // 201 is 210-rightIndent
-				// copyright on the bottom
-					doc.setFont('Noto Sans');
-					doc.setFontSize(10); //in pt
-					var copyrightText = 'Create your own Chinese worksheets for free: www.is.gd/ch_ex';
-					var copyrightTextWidth = doc.getTextWidth(copyrightText) + 2;
-					var copyrightTextHeight = doc.internal.getLineHeight()/doc.internal.scaleFactor + 1;
-					doc.text(copyrightText, 105, charLineDistance * (charsPerPage+1) - 3, 'center');
-					doc.link(105 - copyrightTextWidth/2,
-						charLineDistance * (charsPerPage+1) - 1.5 - copyrightTextHeight,
-						copyrightTextWidth,
-						copyrightTextHeight,
-						{ url: 'https://is.gd/ch_ex'});
+				// footer matching web preview and user image (Globe icon + hanzi.patrickyou.ng) aligned at left margin
+					doc.setFont('NotoSans');
+					doc.setFontSize(8.5); //in pt
+					doc.setTextColor("#64748B"); // slate-500
+					var footerDomain = 'hanzi.patrickyou.ng';
+					var footerDomainWidth = doc.getTextWidth(footerDomain);
+					var footerY = 289; // Fixed at bottom of A4 sheet (297mm height)
+					var footerLeftX = xUpLeft; // Aligned at left margin (14mm)
+
+					// Draw globe icon with cursor arrow matching image
+					var iconRadius = 1.6;
+					var iconCenterX = footerLeftX + iconRadius;
+					var iconCenterY = footerY - 1.0;
+
+					doc.setDrawColor("94A3B8"); // slate-400
+					doc.setLineWidth(0.2);
+					doc.circle(iconCenterX, iconCenterY, iconRadius, 'S');
+					doc.line(iconCenterX - iconRadius, iconCenterY, iconCenterX + iconRadius, iconCenterY);
+					doc.ellipse(iconCenterX, iconCenterY, iconRadius * 0.45, iconRadius, 'S');
+					doc.line(iconCenterX + 1.0, iconCenterY + 1.0, iconCenterX + 2.0, iconCenterY + 2.0);
+
+					var textX = iconCenterX + iconRadius + 2.0;
+					doc.text(footerDomain, textX, footerY, 'left');
+					doc.link(footerLeftX, footerY - 3.5, footerDomainWidth + 8, 5, { url: 'https://hanzi.patrickyou.ng' });
+
+					doc.setTextColor("#000000"); // restore black text color
+					doc.setDrawColor("000000");
 			}
 			thisLineYUpLeft = yUpLeft + (i%charsPerPage) * charLineDistance;
 			// paste hanzi-write Stroke Order SVGs
 				if(pasteSoImages){
+					// calculate starting X offset right after Pinyin
+					var pinyinOffset = 0;
+					if(writePinyin && charPinyin && charPinyin[i]){
+						doc.setFont('NotoSans');
+						doc.setFontSize(12);
+						pinyinOffset = Math.max(14, doc.getTextWidth(charPinyin[i]) + 3);
+					}
 					// this is the div which contains the stroke order of the character "characters[i]"
-					var charSvgs = document.getElementById('strokeOrderSvgs-' + characters[i]).childNodes;
+					var charSvgsEl = document.getElementById('strokeOrderSvgs-' + characters[i]);
+					var charSvgs = charSvgsEl ? charSvgsEl.childNodes : [];
 					// draw every "stroke order element" (= the partial character after k strokes)
 					for(var k = 0; k < charSvgs.length; k++){
-						svg2pdf(charSvgs[k], doc, {
-							xOffset: xUpLeft + 19 + k * 7.2,
-							yOffset: thisLineYUpLeft - 7.1,
-							scale: 1
-						});
+						if(charSvgs[k] && charSvgs[k].nodeType === 1){
+							svg2pdf(charSvgs[k], doc, {
+								xOffset: xUpLeft + pinyinOffset + k * 7.2,
+								yOffset: thisLineYUpLeft - 6.6,
+								scale: 1
+							});
+						}
 					}
 				}
 			// gridlines - part 1
@@ -98,12 +123,12 @@ function createPdf(docTitle, characters, numberOfGrayscaleSigns, pasteSoImages, 
 				}
 			// write pinyin
 				if(writePinyin){
-					doc.setFont('Noto Sans');
+					doc.setFont('NotoSans');
 					doc.setFontSize(12); //in pt
-					doc.text(charPinyin[i], xUpLeft, thisLineYUpLeft-1.5); // "-1.5" looks better
+					doc.text(charPinyin[i] || '', xUpLeft, thisLineYUpLeft-1.5); // "-1.5" looks better
 				}
 			// single characters along the character line
-			doc.setFont('AR PL UKai CN');
+			doc.setFont('WenQuanYiZenHei');
 			doc.setFontSize(40); //in pt
 			for(j = 0; j < 12; ++j){ // 11 chars per line
 				// gridlines - part 2
@@ -148,15 +173,44 @@ function createPdf(docTitle, characters, numberOfGrayscaleSigns, pasteSoImages, 
 			$(".amountDone").html(i);
 		};
 
-	// return doc
-		if(wayOfRetrieval == "window")
-			doc.output('dataurlnewwindow');
-		else if(wayOfRetrieval == "currentWindow")
-			doc.output('datauri');
-		else
-			doc.save(filename + '.pdf');
-		$("#statusTr").removeClass("processing");
-		$("#mainstatus").html('PDF created.');
-		$("#substatus").html('<a href="index.html">Start from the beginning for a new worksheet!</a><br/>(You can also press F5 in order to keep the values you entered in the form.)');
-		// TODO: This timeout above makes it work: Without it, the document was created before the stroke orders were drawn. Anyways, this is just a very dirty trick -- it should be done with callbacks somehow!
+		// Output document with robust Blob delivery
+		var pdfBlob = doc.output('blob');
+		var pdfBlobUrl = URL.createObjectURL(pdfBlob);
+		var finalFilename = filename.toLowerCase().endsWith('.pdf') ? filename : (filename + '.pdf');
+
+		if(wayOfRetrieval == "window") {
+			window.open(pdfBlobUrl, '_blank');
+		} else if(wayOfRetrieval == "currentWindow") {
+			window.location.href = pdfBlobUrl;
+		} else {
+			// Trigger direct clean download
+			var dlAnchor = document.createElement('a');
+			dlAnchor.href = pdfBlobUrl;
+			dlAnchor.download = finalFilename;
+			document.body.appendChild(dlAnchor);
+			dlAnchor.click();
+			setTimeout(function() {
+				if(dlAnchor.parentNode) dlAnchor.parentNode.removeChild(dlAnchor);
+			}, 2000);
+		}
+
+		$("#statusTr").removeClass("processing").addClass("success");
+		$("#mainstatus").html('PDF created successfully!');
+		$("#substatus").html('Your worksheet has been generated.');
+		$("#formFieldset *").prop("disabled", false);
+		$("#create-pdf").show();
+		if (typeof window.onPdfCreated === 'function') {
+			window.onPdfCreated();
+		}
+	} catch (err) {
+		console.error("PDF Generation error:", err);
+		$("#statusTr").removeClass("processing").addClass("error");
+		$("#mainstatus").html('Error creating PDF');
+		$("#substatus").html(err.message || 'An unexpected error occurred during PDF export.');
+		$("#formFieldset *").prop("disabled", false);
+		$("#create-pdf").show();
+		if (typeof window.onPdfCreated === 'function') {
+			window.onPdfCreated();
+		}
+	}
 }
