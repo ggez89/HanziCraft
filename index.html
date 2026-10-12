@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Chinese Character Worksheets</title>
+	<meta name="description" content="Tool to create worksheets for Chinese character writing practice with stroke orders, pinyin, and gridlines." />
+	<meta property="og:title" content="Chinese Character Worksheets" />
+	<meta property="og:description" content="Tool to create worksheets for Chinese character writing practice with stroke orders, pinyin, and gridlines." />
+
+	<!-- Tailwind CSS -->
+	<link rel="stylesheet" href="res/tailwind.css" />
+
+	<!-- Base64 Fonts for Vector PDF Generation (Clean Sans-Serif & Calligraphy KaiTi) -->
+	<script src="res/fontsB64/noto-sans-light.js"></script>
+	<script src="res/fontsB64/wqy-zenhei-ttf.js"></script>
+	<script src="res/fontsB64/wqy-zenhei-ttf-part-2.js"></script>
+	<script src="res/fontsB64/ar-pl-ukai-cn-ff-ttf.js"></script>
+	<script src="res/fontsB64/ar-pl-ukai-cn-ff-ttf-part-2.js"></script>
+
+	<!-- Core Libraries -->
+	<script src="res/libs/jquery.js"></script>
+	<script src="res/libs/jspdf.js"></script>
+	<script src="res/libs/svg2pdf.js"></script>
+	<script src="res/libs/hanzi-writer.min.js"></script>
+	<script src="res/libs/pinyin-pro.js"></script>
+
+	<!-- App Logic -->
+	<script src="res/drawSO.js"></script>
+	<script src="res/createPdf.js"></script>
+	<script src="res/getPinyin.js"></script>
+	<script src="res/script.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased min-h-screen flex flex-col">
+
+	<!-- Top Navigation Bar -->
+	<header class="no-print sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3.5 sm:px-6 py-2.5 flex items-center justify-between gap-3 max-w-full overflow-hidden">
+		<!-- Zone 1: Brand Wordmark -->
+		<div class="flex items-center gap-2.5 min-w-0">
+			<div class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white font-bold text-base shadow-sm shrink-0">
+				<span class="chinese-font">字</span>
+			</div>
+			<div class="min-w-0 flex items-baseline gap-2">
+				<h1 class="text-base font-bold text-slate-900 tracking-tight leading-none truncate">HanziCraft</h1>
+				<span class="text-[11px] font-medium text-slate-500 hidden sm:inline truncate">田字格 · A4 Worksheet Generator</span>
+			</div>
+		</div>
+
+		<!-- Desktop Actions (Hidden on Mobile) -->
+		<div class="hidden lg:flex items-center gap-2.5 shrink-0">
+			<button id="top-btn-about" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors" title="About & Reference Guide">
+				<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+				<span>Guide</span>
+			</button>
+			<button id="top-btn-print" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 active:scale-95 transition-all shadow-sm">
+				<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+				<span>Print</span>
+			</button>
+			<button id="top-btn-download" type="button" class="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-95 rounded-lg transition-all shadow-sm">
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+				<span>Download PDF</span>
+			</button>
+		</div>
+
+		<!-- Mobile Header Right Slot: Guide Icon -->
+		<div class="flex lg:hidden items-center gap-1 shrink-0">
+			<button id="mobile-top-btn-about" type="button" class="p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors" title="Guide">
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+			</button>
+		</div>
+	</header>
+
+	<!-- Main Workspace Split Container -->
+	<main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative w-full max-w-full">
+
+		<!-- LEFT COLUMN: Setup Panel (Visible on Desktop always; on Mobile when activeMobileTab is setup) -->
+		<aside id="setup-panel" class="w-full lg:w-[420px] xl:w-[460px] shrink-0 bg-white border-r border-slate-200 overflow-y-auto p-4 sm:p-6 pb-24 lg:pb-6 flex flex-col gap-6 no-print">
+			
+			<fieldset id="formFieldset" class="flex flex-col gap-5 border-0 p-0 m-0">
+
+				<!-- 1. Document Title -->
+				<div class="flex flex-col gap-1.5">
+					<label for="doc-title" class="text-xs font-semibold text-slate-700 tracking-wide uppercase">Worksheet Title</label>
+					<input type="text" id="doc-title" value="基础汉字书写练习" placeholder="e.g. Lesson 1 Practice - 基础汉字" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none transition-all placeholder:text-slate-400" />
+					<span class="text-[11px] text-slate-500">Centered at the top of each printed page</span>
+				</div>
+
+				<!-- 2. Characters to Practice -->
+				<div class="flex flex-col gap-2">
+					<div class="flex items-center justify-between">
+						<label for="characters" class="text-xs font-semibold text-slate-700 tracking-wide uppercase">Characters to Practice</label>
+						<span id="char-counter" class="text-xs font-medium text-slate-500 tabular-nums">10 chars · 1 page</span>
+					</div>
+					<textarea id="characters" rows="3" class="w-full px-3.5 py-2.5 text-base chinese-font tracking-widest bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none transition-all placeholder:text-slate-400" placeholder="Type or paste Chinese characters here...">一二三四五六七八九十</textarea>
+					
+					<!-- Quick Presets -->
+					<div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+						<span class="text-[11px] text-slate-500 font-medium mr-1">Presets:</span>
+						<button type="button" class="preset-btn px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors" data-chars="一二三四五六七八九十">1–10</button>
+						<button type="button" class="preset-btn px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors" data-chars="你好谢谢再见早安">Greetings</button>
+						<button type="button" class="preset-btn px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors" data-chars="日月水火山石木田">Nature</button>
+						<button type="button" class="preset-btn px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors" data-chars="学中文写汉字天天向上">Study</button>
+					</div>
+
+					<div class="flex items-center gap-2 mt-1">
+						<input type="checkbox" id="removeDuplicates" name="removeDuplicates" checked class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500" />
+						<label for="removeDuplicates" class="text-xs text-slate-600 select-none cursor-pointer">Remove duplicate characters</label>
+					</div>
+				</div>
+
+				<!-- 3. Character Size Slider (Automatically fills row with practice squares) -->
+				<div class="flex flex-col gap-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+					<div class="flex items-center justify-between">
+						<label for="char-size" class="text-xs font-semibold text-slate-700 tracking-wide uppercase">Character Size</label>
+						<span id="char-size-val" class="text-xs font-bold text-red-600 bg-red-50 border border-red-200/60 px-2 py-0.5 rounded-full tabular-nums">17 mm · Standard</span>
+					</div>
+					<input id="char-size" type="range" min="12" max="24" value="17" step="1" class="w-full accent-red-600 cursor-pointer" />
+					<div class="flex justify-between text-[10px] text-slate-600 tabular-nums">
+						<span>Small (12 mm)</span>
+						<span>Standard (17 mm)</span>
+						<span>Jumbo (24 mm)</span>
+					</div>
+					<p id="char-size-desc" class="text-[11px] text-slate-500 leading-relaxed mt-0.5">
+						Automatically fills each row with 1 reference + 10 practice squares across the page width.
+					</p>
+				</div>
+
+				<!-- 4. Font Style Toggle (Sans-Serif vs Brush / Calligraphy) -->
+				<div class="flex flex-col gap-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+					<div class="flex items-center justify-between">
+						<span class="text-xs font-semibold text-slate-700 tracking-wide uppercase">Font & Stroke Style</span>
+						<span id="font-style-badge" class="text-xs font-bold text-red-600 bg-red-50 border border-red-200/60 px-2 py-0.5 rounded-full">Sans-Serif (黑体)</span>
+					</div>
+					<div class="grid grid-cols-2 gap-2 mt-0.5">
+						<button type="button" id="font-style-sans" class="font-style-btn flex flex-col items-center justify-center p-2.5 rounded-lg border-2 border-red-600 bg-red-50/70 text-red-700 font-medium transition-all shadow-sm cursor-pointer" data-font="sans">
+							<span class="text-base font-bold chinese-font">永 · 黑体</span>
+							<span class="text-[11px] text-slate-500 mt-0.5">Sans-Serif (Modern)</span>
+						</button>
+						<button type="button" id="font-style-kaiti" class="font-style-btn flex flex-col items-center justify-center p-2.5 rounded-lg border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-all cursor-pointer" data-font="kaiti">
+							<span class="text-base font-bold font-chinese-kaiti">永 · 楷体</span>
+							<span class="text-[11px] text-slate-500 mt-0.5">Brush / Calligraphy</span>
+						</button>
+					</div>
+					<input type="hidden" id="selected-font-style" value="sans" />
+					<p class="text-[11px] text-slate-500 leading-relaxed">
+						Switches character font and stroke order between clean sans-serif and traditional brushwork for the entire page and PDF.
+					</p>
+				</div>
+
+				<!-- 4. Formatting Toggles -->
+				<div class="flex flex-col gap-2.5">
+					<span class="text-xs font-semibold text-slate-700 tracking-wide uppercase">Worksheet Layout Options</span>
+
+					<label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-lg border border-slate-200/60 cursor-pointer transition-colors">
+						<div class="flex items-center gap-2.5">
+							<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+							<div>
+								<span class="text-xs font-medium text-slate-800 block">Faint Trace Outlines</span>
+								<span class="text-[11px] text-slate-500 block">Faint character guides for guided muscle memory</span>
+							</div>
+						</div>
+						<input type="checkbox" id="show-trace-guides" name="show-trace-guides" checked class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500" />
+					</label>
+
+					<label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-lg border border-slate-200/60 cursor-pointer transition-colors">
+						<div class="flex items-center gap-2.5">
+							<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+							<div>
+								<span class="text-xs font-medium text-slate-800 block">Stroke Order Breakdown</span>
+								<span class="text-[11px] text-slate-500 block">Visual progressive stroke steps above row</span>
+							</div>
+						</div>
+						<input type="checkbox" id="paste-so-images" name="paste-so-images" checked class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500" />
+					</label>
+
+					<label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-lg border border-slate-200/60 cursor-pointer transition-colors">
+						<div class="flex items-center gap-2.5">
+							<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+							<div>
+								<span class="text-xs font-medium text-slate-800 block">Pīnyīn Pronunciation</span>
+								<span class="text-[11px] text-slate-500 block">Tone-marked pinyin for each character</span>
+							</div>
+						</div>
+						<input type="checkbox" id="write-pinyin" name="write-pinyin" checked class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500" />
+					</label>
+
+					<label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-lg border border-slate-200/60 cursor-pointer transition-colors">
+						<div class="flex items-center gap-2.5">
+							<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+							<div>
+								<span class="text-xs font-medium text-slate-800 block">Tianzige Practice Gridlines</span>
+								<span class="text-[11px] text-slate-500 block">Cross and diagonal balance guidelines</span>
+							</div>
+						</div>
+						<input type="checkbox" id="use-gridlines" name="use-gridlines" checked class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500" />
+					</label>
+
+					<label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-lg border border-slate-200/60 cursor-pointer transition-colors">
+						<div class="flex items-center gap-2.5">
+							<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+							<div>
+								<span class="text-xs font-medium text-slate-800 block">Header Student Name Field</span>
+								<span class="text-[11px] text-slate-500 block">Prints "姓名：_______" at the top</span>
+							</div>
+						</div>
+						<input type="checkbox" id="write-name" name="write-name" checked class="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500" />
+					</label>
+				</div>
+
+				<!-- 5. Advanced / Output Details (Compact) -->
+				<details class="text-xs text-slate-600 border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+					<summary class="font-semibold text-slate-700 cursor-pointer select-none">Output Settings</summary>
+					<div class="flex flex-col gap-3 mt-3 pt-2 border-t border-slate-200">
+						<div id="filenameTr" class="flex flex-col gap-1">
+							<label for="doc-filename" class="text-xs font-medium text-slate-600">PDF Filename</label>
+							<div class="flex items-center gap-1">
+								<input type="text" id="doc-filename" placeholder="Auto from title" class="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-md outline-none focus:border-red-600" />
+								<span class="text-xs text-slate-500 font-mono">.pdf</span>
+							</div>
+						</div>
+						<div class="flex flex-col gap-1">
+							<span class="text-xs font-medium text-slate-600">Delivery Mode</span>
+							<div class="flex gap-4">
+								<label class="flex items-center gap-1.5 cursor-pointer">
+									<input type="radio" id="way-of-retr-download" name="way-of-retr" value="download" checked class="text-red-600 focus:ring-red-500" />
+									<span class="text-xs text-slate-700">Download</span>
+								</label>
+								<label class="flex items-center gap-1.5 cursor-pointer">
+									<input type="radio" id="way-of-retr-window" name="way-of-retr" value="window" class="text-red-600 focus:ring-red-500" />
+									<span class="text-xs text-slate-700">New Tab</span>
+								</label>
+							</div>
+						</div>
+					</div>
+				</details>
+
+				<!-- 6. Primary Action Buttons -->
+				<div class="flex flex-col gap-2 pt-1">
+					<button type="button" id="create-pdf" class="w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-red-600 hover:bg-red-700 active:scale-[0.98] transition-all shadow-md shadow-red-600/20 flex items-center justify-center gap-2">
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+						<span>Generate & Download PDF</span>
+					</button>
+
+					<button type="button" id="sidebar-btn-print" class="w-full py-2.5 px-4 rounded-xl font-medium text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
+						<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+						<span>Print Directly</span>
+					</button>
+
+					<!-- Progress & Status Indicator -->
+					<div id="statusTr" class="status-container hidden rounded-xl p-3 bg-slate-50 border border-slate-200 transition-all text-xs">
+						<div class="flex items-center gap-2">
+							<div id="status-spinner" class="w-3.5 h-3.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+							<span id="mainstatus" class="font-semibold text-slate-800">Processing:</span>
+						</div>
+						<div id="substatus" class="text-slate-600 mt-1 pl-5.5 leading-relaxed text-[11px]">
+							Initializing PDF generator...
+						</div>
+					</div>
+				</div>
+
+			</fieldset>
+
+		</aside>
+
+		<!-- RIGHT COLUMN: Page View / Interactive Live Canvas -->
+		<section id="preview-panel" class="flex-1 bg-slate-200/70 overflow-y-auto p-2 sm:p-6 lg:p-8 flex flex-col items-center justify-start min-h-full pb-24 lg:pb-8">
+
+			<!-- Preview Control Bar -->
+			<div class="no-print w-full max-w-[800px] mb-3 flex items-center justify-between gap-3 text-xs text-slate-600 bg-white/90 backdrop-blur-md px-3.5 py-2 sm:py-2.5 rounded-xl border border-slate-300 shadow-sm">
+				<div class="flex items-center gap-1.5 sm:gap-2">
+					<span class="font-medium text-slate-800">Live Preview</span>
+					<span class="text-slate-300 hidden sm:inline">·</span>
+					<span class="text-slate-600 font-medium hidden sm:inline">A4 (210 × 297mm)</span>
+				</div>
+
+				<!-- Pagination Controls (Hidden when only 1 page) -->
+				<div id="pagination-controls-wrapper" class="flex items-center gap-1.5 sm:gap-2">
+					<button id="prev-page-btn" type="button" class="px-2 py-1 text-xs font-medium rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+						← Prev
+					</button>
+					<span id="page-indicator" class="font-semibold text-slate-800 tabular-nums">Page 1 of 1</span>
+					<button id="next-page-btn" type="button" class="px-2 py-1 text-xs font-medium rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+						Next →
+					</button>
+				</div>
+			</div>
+
+			<!-- Realistic Sheet Paper Simulation (A4 Sheet: 210 × 297mm proportion) -->
+			<div id="worksheet-paper-container" class="worksheet-page w-full max-w-[760px] aspect-[210/297] bg-white rounded-sm shadow-xl border border-slate-300/80 px-4 sm:px-7 pt-4 sm:pt-6 pb-3 sm:pb-4 flex flex-col justify-between transition-all relative">
+				
+				<!-- Paper Header -->
+				<div class="pb-2 border-b-2 border-slate-900 shrink-0">
+					<div class="flex items-center justify-between text-xs sm:text-sm font-medium text-slate-700 mb-0.5">
+						<div id="paper-header-name" class="font-sans chinese-font">
+							姓名：<span class="border-b border-slate-400 inline-block w-24 sm:w-32">&nbsp;</span>
+						</div>
+						<div id="paper-header-page" class="font-mono text-slate-500 tabular-nums hidden">
+						</div>
+					</div>
+					<h2 id="paper-title" class="text-lg sm:text-xl font-bold text-center chinese-font text-slate-900 tracking-wider my-1">
+						基础汉字书写练习
+					</h2>
+				</div>
+
+				<!-- Paper Rows (Dynamic Character Lines, 11 rows per page) -->
+				<div id="paper-rows" class="flex-1 flex flex-col justify-between divide-y divide-slate-100/70 py-1 sm:py-1.5 min-h-0 overflow-hidden">
+					<!-- Dynamically injected via script.js -->
+				</div>
+
+				<!-- Paper Footer matching https://github.com/ggez89/mathletics: Globe size 16 + MousePointer2 size 9 + hanzi.patrickyou.ng, aligned at left margin -->
+				<div class="shrink-0 pt-2 sm:pt-3 border-t border-slate-200/90 flex items-center justify-start text-[14px] text-gray-400 print:text-gray-600 font-sans font-medium select-none">
+					<div class="flex items-center gap-2">
+						<div class="relative inline-flex items-center justify-center w-5 h-5 shrink-0">
+							<!-- Lucide Globe (size 16) -->
+							<svg class="w-4 h-4 text-gray-400 print:text-gray-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<circle cx="12" cy="12" r="10"></circle>
+								<path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+								<path d="M2 12h20"></path>
+							</svg>
+							<!-- Lucide MousePointer2 (size 9) -->
+							<svg class="w-[9px] h-[9px] absolute -bottom-0.5 -right-0.5 text-gray-400 print:text-gray-600 fill-current shrink-0" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"></path>
+							</svg>
+						</div>
+						<a href="https://hanzi.patrickyou.ng" target="_blank" rel="noopener noreferrer" class="text-gray-400 print:text-gray-600 hover:text-slate-700 transition-colors">
+							<span>hanzi.patrickyou.ng</span>
+						</a>
+					</div>
+				</div>
+
+			</div>
+
+			<!-- Subtle helper note below paper -->
+			<p class="no-print text-center text-xs text-slate-500 mt-4 mb-16 lg:mb-4">
+				Preview updates live as you type. Click <b>Download PDF</b> for the full-resolution vector print file.
+			</p>
+
+		</section>
+
+	</main>
+
+	<!-- MOBILE STICKY BOTTOM ACTION BAR -->
+	<div class="lg:hidden no-print fixed bottom-0 left-0 right-0 p-2.5 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 flex items-center gap-2 shadow-lg">
+		<!-- 1. Toggle View Button -->
+		<button id="mobile-toggle-view" type="button" class="flex-1 py-2.5 px-2 rounded-xl font-medium text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-95 transition-all flex items-center justify-center gap-1.5 border border-slate-200 truncate">
+			<span id="mobile-toggle-icon">📄</span>
+			<span id="mobile-toggle-text" class="truncate">Page View</span>
+		</button>
+
+		<!-- 2. Mobile Print Button -->
+		<button id="mobile-btn-print" type="button" class="py-2.5 px-3 rounded-xl font-medium text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-95 transition-all flex items-center justify-center gap-1.5 border border-slate-200 shrink-0">
+			<svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+			<span>Print</span>
+		</button>
+
+		<!-- 3. Primary Download PDF Button -->
+		<button id="mobile-btn-download" type="button" class="flex-1 py-2.5 px-2.5 rounded-xl font-semibold text-xs text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-1.5 truncate">
+			<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+			<span class="truncate">Download PDF</span>
+		</button>
+	</div>
+
+	<!-- ABOUT & REFERENCE GUIDE MODAL -->
+	<div id="about-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4">
+		<div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 flex flex-col gap-4">
+			<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+				<div class="flex items-center gap-2.5">
+					<div class="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold chinese-font">字</div>
+					<div>
+						<h3 class="text-sm font-bold text-slate-900">About HanziCraft</h3>
+						<span class="text-xs text-slate-500">Self-Contained Chinese Writing Worksheets</span>
+					</div>
+				</div>
+				<button id="close-about-modal" type="button" class="text-slate-400 hover:text-slate-600 p-1">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+				</button>
+			</div>
+
+			<div class="text-xs text-slate-600 leading-relaxed space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+				<p>
+					<b>HanziCraft</b> creates printable A4 worksheets for practicing Chinese character handwriting. Each sheet follows the traditional Tianzige (田字格) and Mizige (米字格) balance grid conventions used in Chinese calligraphy education.
+				</p>
+				<div class="p-3 bg-slate-50 rounded-xl space-y-1.5 border border-slate-100">
+					<div class="font-semibold text-slate-800">100% Offline & Self-Contained</div>
+					<p class="text-slate-500">
+						Pīnyīn transliteration runs locally via <code class="text-red-600 font-mono">pinyin-pro</code>. Stroke order vectors are bundled locally via <code class="text-red-600 font-mono">hanzi-writer-data</code>. Embedded fonts include clean sans-serif WenQuanYi Zen Hei and Noto Sans. No external APIs or internet access required.
+					</p>
+				</div>
+				<p>
+					Worksheets are generated locally in vector PDF format, optimized for physical A4 printing.
+				</p>
+			</div>
+
+			<div class="pt-2 border-t border-slate-100 flex justify-end">
+				<button id="dismiss-about-modal" type="button" class="px-4 py-2 text-xs font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
+					Got it
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Needed for vector PDF generation (hidden Hanzi Writer target) -->
+	<div id="strokeOrderSvgs-template" style="display:none;"></div>
+
+</body>
+</html>

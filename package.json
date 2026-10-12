@@ -1,0 +1,20 @@
+{
+  "name": "chinese-character-worksheets",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "npx @tailwindcss/cli -i src/input.css -o res/tailwind.css --minify"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "hanzi-writer-data": "^2.0.1",
+    "pinyin-pro": "^3.27.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}

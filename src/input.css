@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "WenQuanYi Zen Hei";
+  src: url("/res/fonts/wqy-zenhei.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AR PL UKai CN";
+  src: url("/res/fonts/ar-pl-ukai.ttf") format("truetype");
+  font-display: swap;
+}
+
+@layer utilities {
+  .chinese-font, .font-chinese-sans {
+    font-family: "WenQuanYi Zen Hei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  }
+  .font-chinese-kaiti {
+    font-family: "AR PL UKai CN", "KaiTi", "STKaiti", "Kaiti SC", "楷体", "楷体_GB2312", "BiauKai", "Ma Shan Zheng", serif;
+  }
+}
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  html, body {
+    width: 210mm !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+  main {
+    display: block !important;
+    overflow: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #preview-panel {
+    display: block !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  .worksheet-page {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 auto !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    height: 296mm !important;
+    max-height: 297mm !important;
+    min-height: 0 !important;
+    padding: 14mm 14mm 10mm 14mm !important;
+    box-sizing: border-box !important;
+    page-break-after: auto !important;
+    break-after: auto !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    background: white !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    overflow: hidden !important;
+  }
+}
+

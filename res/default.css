@@ -1,0 +1,107 @@
+/* this is the basic style for the app */
+* {
+	font-family: sans-serif;
+}
+body {
+	padding: 0 15px 15px 15px;
+}
+.formtable {
+	border-collapse: collapse;
+}
+.formtable td {
+	vertical-align: top;
+	border-bottom: 1px solid rgba(0,0,0,0.5);
+	padding: 4px 0;
+}
+.formtable td:nth-of-type(1) {
+	text-align: right;
+	padding: 4px 10px 4px 0;
+}
+.annotation {
+	font-style: italic;
+	opacity: .8;
+	font-size: 0.9em;
+	display: block;
+}
+sup a {
+	font-weight: bold;
+	text-decoration: none;
+	padding-left: 2px;
+}
+#characters {
+	font-size:17pt;
+}
+.status {
+	display: none;
+	font-style: italic;
+}
+#mainstatus {
+	font-weight: bold;
+}
+#statusTr.error #substatus {
+	color: #d00;
+}
+.checkRadioBlock {
+	display: inline-block;
+	margin: 0 8px 0 0;
+}
+input:disabled+label {
+	opacity: .6;
+}
+#footnotes {
+	margin-top: 0;
+}
+#gridlineExampleTable {
+	display: table;
+}
+#gridlineExampleTable div {
+	display: table-cell;
+	vertical-align: middle;
+	padding: 0 8px 0 0;
+}
+#gridlineExampleTable img {
+	max-height: 65px;
+}
+.only-mobile {
+	display: none;
+}
+.togglingHeading .toggle {
+	color: rgba(0,0,0,0.6);
+	cursor: pointer;
+	margin: 0 0 0 8px;
+	font-weight: normal;
+	font-size: 0.65em;
+	display: inline-block;
+	position: absolute;
+}
+.togglingHeading .toggle:hover {
+	color: rgba(0,0,0,0.9);
+	text-decoration: underline;
+}
+/*
+* LOADING DOTS
+* this is from https://codepen.io/vkjgr/pen/gbPaVx
+*/
+	.processing .loadingDotsBehind:after {
+	  content: '.';
+	  animation: dots 1s steps(5, end) infinite;}
+
+	@keyframes dots {
+	  0%, 20% {
+		color: rgba(0,0,0,0);
+		text-shadow:
+		  .25em 0 0 rgba(0,0,0,0),
+		  .5em 0 0 rgba(0,0,0,0);}
+	  40% {
+		color: black;
+		text-shadow:
+		  .25em 0 0 rgba(0,0,0,0),
+		  .5em 0 0 rgba(0,0,0,0);}
+	  60% {
+		text-shadow:
+		  .25em 0 0 black,
+		  .5em 0 0 rgba(0,0,0,0);}
+	  80%, 100% {
+		text-shadow:
+		  .25em 0 0 black,
+		  .5em 0 0 black;}}
