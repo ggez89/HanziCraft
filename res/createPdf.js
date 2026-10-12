@@ -9,14 +9,14 @@
 function getLayoutConfig(charSize) {
 	charSize = Math.max(12, Math.min(24, Number(charSize) || 17));
 	var numCols, rowsPerPage, label;
-	if (charSize <= 12) { numCols = 15; rowsPerPage = 13; label = 'Compact'; }
-	else if (charSize <= 13) { numCols = 14; rowsPerPage = 12; label = 'Small'; }
-	else if (charSize <= 14) { numCols = 13; rowsPerPage = 12; label = 'Small'; }
-	else if (charSize <= 15) { numCols = 12; rowsPerPage = 11; label = 'Medium'; }
-	else if (charSize <= 17) { numCols = 11; rowsPerPage = 11; label = 'Standard'; }
-	else if (charSize <= 19) { numCols = 10; rowsPerPage = 10; label = 'Medium-Large'; }
-	else if (charSize <= 21) { numCols = 9; rowsPerPage = 9; label = 'Large'; }
-	else { numCols = 8; rowsPerPage = 8; label = 'Jumbo'; }
+	if (charSize <= 12) { numCols = 15; rowsPerPage = 12; label = 'Compact'; }
+	else if (charSize <= 13) { numCols = 14; rowsPerPage = 11; label = 'Small'; }
+	else if (charSize <= 14) { numCols = 13; rowsPerPage = 11; label = 'Small'; }
+	else if (charSize <= 15) { numCols = 12; rowsPerPage = 10; label = 'Medium'; }
+	else if (charSize <= 17) { numCols = 11; rowsPerPage = 10; label = 'Standard'; }
+	else if (charSize <= 19) { numCols = 10; rowsPerPage = 9; label = 'Medium-Large'; }
+	else if (charSize <= 21) { numCols = 9; rowsPerPage = 8; label = 'Large'; }
+	else { numCols = 8; rowsPerPage = 7; label = 'Jumbo'; }
 	
 	var practiceSquares = numCols - 1;
 	var traceSquares = Math.max(1, Math.min(practiceSquares, Math.round(practiceSquares * 0.38)));
@@ -81,9 +81,9 @@ function createPdf(docTitle, characters, charSizeOrTrace, pasteSoImages, writePi
 		var j;
 		var xUpLeft = 14;								// x position of the first character line on a page = left indent
 		var yUpLeft = 23;								// y position start on page
-		var availableRowHeight = 281 - yUpLeft;			// vertical space for all rows (258 mm)
+		var availableRowHeight = 276 - yUpLeft;			// vertical space for all rows (253 mm, keeping generous margin above footer at 283 mm)
 		var charLineDistance = availableRowHeight / charsPerPage; // distance between character row baselines
-		var subRowSpace = Math.max(5.0, charLineDistance - charLineHeight);
+		var subRowSpace = Math.max(4.5, charLineDistance - charLineHeight);
 		var thisLineYUpLeft;
 		var curPage = 1;								// current page
 		var totalPages = Math.max(1, Math.ceil(characters.length / charsPerPage)); // total number of pages (pre-computed)
