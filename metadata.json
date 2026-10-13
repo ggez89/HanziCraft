@@ -1,9 +1,8 @@
 {
   "name": "Chinese Character Worksheets",
-  "description": "Tool to create worksheets for Chinese character writing practice with stroke orders, pinyin, and gridlines.",
-  "prompt": "Tool to create worksheets for Chinese character writing practice",
+  "description": "Professional, customizable Chinese character handwriting and stroke practice worksheet generator with Tianzige and Mizige grids, stroke order diagrams, and vector PDF export.",
+  "permissions": [],
   "capabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ],
-  "permissions": []
+  ]
 }

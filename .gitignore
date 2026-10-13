@@ -2,6 +2,10 @@
 notes/
 Chinese_Character_Worksheet_Tool.html
 
+# Stroke definition files
+data/strokes/
+/data/strokes/
+
 # Node dependencies and build outputs
 node_modules/
 dist/
@@ -9,3 +13,4 @@ dist-server/
 .env
 .env.local
 .DS_Store
+*.zip
