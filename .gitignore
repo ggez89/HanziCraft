@@ -1,2 +1,11 @@
+# Notes and internal tools
 notes/
 Chinese_Character_Worksheet_Tool.html
+
+# Node dependencies and build outputs
+node_modules/
+dist/
+dist-server/
+.env
+.env.local
+.DS_Store
