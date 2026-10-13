@@ -84,9 +84,24 @@ export function App() {
     return result.length > 0 ? result : [[]];
   }, [characters, itemsPerPage]);
 
-  const handleDownloadPdf = () => {
-    // If browser supports print dialog to PDF, that provides the highest vector resolution
-    printWorksheet();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfStatus, setPdfStatus] = useState('');
+
+  const handleDownloadPdf = async () => {
+    if (isGeneratingPdf) return;
+    try {
+      setIsGeneratingPdf(true);
+      await downloadPdfDocument(settings.title || 'Chinese-Character-Worksheet', (status) => {
+        setPdfStatus(status);
+      });
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+      // Fallback to print if canvas fails
+      printWorksheet();
+    } finally {
+      setIsGeneratingPdf(false);
+      setPdfStatus('');
+    }
   };
 
   return (
@@ -107,6 +122,8 @@ export function App() {
               charCount={characters.length}
               pageCount={pages.length}
               onDownloadPdf={handleDownloadPdf}
+              isGeneratingPdf={isGeneratingPdf}
+              pdfStatus={pdfStatus}
             />
           </div>
 

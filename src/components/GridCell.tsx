@@ -44,6 +44,9 @@ export const GridCell: React.FC<GridCellProps> = ({
         className="w-full h-full"
         style={{ display: 'block' }}
       >
+        {/* Solid Pure White Background - Eliminates any grey background bleedthrough */}
+        <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
+
         {/* Inner Mizige / Tianzige guidelines */}
         {showGridlines && (
           <g>

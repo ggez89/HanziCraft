@@ -10,6 +10,7 @@ import {
   Printer,
   ChevronRight,
   ChevronDown,
+  Loader2,
 } from 'lucide-react';
 import { printWorksheet } from '../utils/pdfExport';
 
@@ -23,6 +24,8 @@ interface ControlsProps {
   charCount: number;
   pageCount: number;
   onDownloadPdf: () => void;
+  isGeneratingPdf?: boolean;
+  pdfStatus?: string;
 }
 
 const PRESETS = [
@@ -42,6 +45,8 @@ export const Controls: React.FC<ControlsProps> = ({
   charCount,
   pageCount,
   onDownloadPdf,
+  isGeneratingPdf = false,
+  pdfStatus = '',
 }) => {
   const [outputSettingsOpen, setOutputSettingsOpen] = useState(false);
 
@@ -358,10 +363,15 @@ export const Controls: React.FC<ControlsProps> = ({
         <button
           type="button"
           onClick={onDownloadPdf}
-          className="w-full py-3.5 px-4 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm rounded-xl shadow-md shadow-red-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          disabled={isGeneratingPdf}
+          className="w-full py-3.5 px-4 bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:bg-red-400 text-white font-bold text-sm rounded-xl shadow-md shadow-red-200 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-wait"
         >
-          <Download className="w-4 h-4 stroke-[2.5]" />
-          <span>Generate & Download PDF</span>
+          {isGeneratingPdf ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Download className="w-4 h-4 stroke-[2.5]" />
+          )}
+          <span>{isGeneratingPdf ? (pdfStatus || 'Generating PDF...') : 'Generate & Download PDF'}</span>
         </button>
 
         <button

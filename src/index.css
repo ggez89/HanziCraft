@@ -2,35 +2,49 @@
 
 @layer base {
   @media print {
+    /* Setting margin to 0 completely removes browser headers, footers, dates, and URLs */
     @page {
       size: A4 portrait;
-      margin: 10mm 10mm 10mm 10mm;
+      margin: 0 !important;
     }
+    
     html, body {
-      background: white !important;
-      color: black !important;
+      background: #ffffff !important;
+      color: #000000 !important;
       margin: 0 !important;
       padding: 0 !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
+    
     .no-print {
       display: none !important;
     }
+    
     .print-only {
       display: block !important;
     }
+    
     .print-container {
-      width: 100% !important;
-      max-width: 100% !important;
+      width: 210mm !important;
+      height: 297mm !important;
+      max-height: 297mm !important;
+      box-sizing: border-box !important;
+      padding: 12mm 14mm 10mm 14mm !important;
+      margin: 0 auto !important;
+      background: #ffffff !important;
       box-shadow: none !important;
       border: none !important;
-      padding: 0 !important;
-      margin: 0 !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      overflow: hidden !important;
     }
+    
     .page-break {
-      page-break-after: always;
-      break-after: page;
+      page-break-after: always !important;
+      break-after: page !important;
     }
   }
 
