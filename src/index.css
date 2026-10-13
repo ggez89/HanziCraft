@@ -1,92 +1,116 @@
 @import "tailwindcss";
 
-@layer base {
-  @media print {
-    /* Setting margin to 0 completely removes browser headers, footers, dates, and URLs */
-    @page {
-      size: A4 portrait;
-      margin: 0 !important;
-    }
-    
-    html, body {
-      background: #ffffff !important;
-      color: #000000 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    
-    .no-print {
-      display: none !important;
-    }
-    
-    .print-only {
-      display: block !important;
-    }
-    
-    .print-container {
-      width: 210mm !important;
-      height: 297mm !important;
-      max-height: 297mm !important;
-      box-sizing: border-box !important;
-      padding: 12mm 14mm 10mm 14mm !important;
-      margin: 0 auto !important;
-      background: #ffffff !important;
-      box-shadow: none !important;
-      border: none !important;
-      page-break-after: always !important;
-      break-after: page !important;
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-      overflow: hidden !important;
-    }
-    
-    .page-break {
-      page-break-after: always !important;
-      break-after: page !important;
-    }
+/* Custom font families */
+.font-kaiti {
+  font-family: "Ma Shan Zheng", "Kaiti", "STKaiti", "KaiTi_GB2312", "SimKai", "DFKai-SB", "Noto Serif SC", serif;
+}
+
+.font-heiti {
+  font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+}
+
+/* Range Slider thumb styling for smooth draggable handling */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e60012;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  border: 2px solid #ffffff;
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e60012;
+  cursor: grab;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+input[type="range"]::-moz-range-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+/* PURE PRINT MEDIA RULES - Outside of any layer for highest cascade priority */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0 !important;
   }
 
-  /* Custom font families */
-  .font-kaiti {
-    font-family: "Ma Shan Zheng", "Kaiti", "STKaiti", "KaiTi_GB2312", "SimKai", "DFKai-SB", "Noto Serif SC", serif;
-  }
-  
-  .font-heiti {
-    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+  *, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 
-  /* Range Slider thumb styling for smooth draggable handling */
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #e60012;
-    cursor: grab;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-    border: 2px solid #ffffff;
+  html, body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  input[type="range"]::-webkit-slider-thumb:active {
-    cursor: grabbing;
-    transform: scale(1.1);
+  /* Strip all parent wrapper paddings, borders, shadows and grey backgrounds */
+  div, main, section {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
-  input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #e60012;
-    cursor: grab;
-    border: 2px solid #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  .no-print {
+    display: none !important;
   }
 
-  input[type="range"]::-moz-range-thumb:active {
-    cursor: grabbing;
-    transform: scale(1.1);
+  .print-only {
+    display: block !important;
+  }
+
+  .print-container {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    box-sizing: border-box !important;
+    padding: 12mm 14mm 10mm 14mm !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Break page ONLY between multiple pages; never on or after the last page! */
+  .print-container:not(:last-child) {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .print-container:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+    margin-bottom: 0 !important;
   }
 }

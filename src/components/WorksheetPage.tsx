@@ -65,7 +65,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
 
   return (
-    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-6 sm:p-7 mb-8 w-[210mm] min-h-[297mm] box-border relative flex flex-col justify-between select-none page-break">
+    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-6 sm:p-7 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] box-border relative flex flex-col justify-between select-none">
       <div className="flex-1 flex flex-col">
         {/* Page Header: Left-aligned Logo + Worksheet Title, with Name on right */}
         <div className="mb-3">
