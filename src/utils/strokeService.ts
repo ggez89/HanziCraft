@@ -11,6 +11,7 @@ export async function fetchStrokeData(char: string): Promise<StrokeData | null> 
     return strokeCache.get(char)!;
   }
 
+  // 1. Try local server API if running in fullstack mode
   try {
     const res = await fetch(`/api/strokes/${encodeURIComponent(char)}`);
     if (res.ok) {
@@ -18,21 +19,28 @@ export async function fetchStrokeData(char: string): Promise<StrokeData | null> 
       strokeCache.set(char, data);
       return data;
     }
-  } catch (err) {
-    console.warn(`Failed to fetch stroke data for ${char}:`, err);
+  } catch {
+    // Continue to external CDN endpoints
   }
 
-  // Fallback direct CDN if server is unavailable
-  try {
-    const cdnUrl = `https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/${encodeURIComponent(char)}.json`;
-    const res = await fetch(cdnUrl);
-    if (res.ok) {
-      const data: StrokeData = await res.json();
-      strokeCache.set(char, data);
-      return data;
+  // 2. Dedicated CDN endpoints: ggez89 github.io, ggez89 raw github fallback, and jsdelivr fallback
+  const cdnEndpoints = [
+    `https://ggez89.github.io/hanzi-writer-data/data/${encodeURIComponent(char)}.json`,
+    `https://raw.githubusercontent.com/ggez89/hanzi-writer-data/master/data/${encodeURIComponent(char)}.json`,
+    `https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/${encodeURIComponent(char)}.json`,
+  ];
+
+  for (const cdnUrl of cdnEndpoints) {
+    try {
+      const res = await fetch(cdnUrl);
+      if (res.ok) {
+        const data: StrokeData = await res.json();
+        strokeCache.set(char, data);
+        return data;
+      }
+    } catch {
+      // Try next endpoint in sequence
     }
-  } catch {
-    // ignore
   }
 
   strokeCache.set(char, null);

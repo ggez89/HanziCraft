@@ -94,10 +94,10 @@ export function App() {
       await downloadPdfDocument(settings.title || 'Chinese-Character-Worksheet', (status) => {
         setPdfStatus(status);
       });
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to generate PDF:', err);
-      // Fallback to print if canvas fails
-      printWorksheet();
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(`Could not generate PDF directly: ${msg}`);
     } finally {
       setIsGeneratingPdf(false);
       setPdfStatus('');

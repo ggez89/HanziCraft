@@ -34,16 +34,23 @@ app.get('/api/strokes/:char', async (req, res) => {
     }
   }
 
-  // Fallback to jsdelivr CDN for characters beyond the bundled set
-  try {
-    const cdnUrl = `https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/${encodeURIComponent(char)}.json`;
-    const response = await fetch(cdnUrl);
-    if (response.ok) {
-      const json = await response.json();
-      return res.json(json);
+  // Fetch from dedicated ggez89 CDN endpoint (with raw GitHub and jsdelivr fallbacks)
+  const cdnEndpoints = [
+    `https://ggez89.github.io/hanzi-writer-data/data/${encodeURIComponent(char)}.json`,
+    `https://raw.githubusercontent.com/ggez89/hanzi-writer-data/master/data/${encodeURIComponent(char)}.json`,
+    `https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/${encodeURIComponent(char)}.json`,
+  ];
+
+  for (const cdnUrl of cdnEndpoints) {
+    try {
+      const response = await fetch(cdnUrl);
+      if (response.ok) {
+        const json = await response.json();
+        return res.json(json);
+      }
+    } catch (err) {
+      console.warn(`Failed CDN fetch from ${cdnUrl} for char ${char}:`, err);
     }
-  } catch (err) {
-    console.warn(`Failed CDN fetch for char ${char}:`, err);
   }
 
   return res.status(404).json({ error: `No stroke data available for '${char}'` });

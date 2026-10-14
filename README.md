@@ -42,7 +42,7 @@ Create beautiful, printable Chinese handwriting practice sheets in seconds. Desi
 
 - **Frontend & App Engine**: Built with React 19, TypeScript, and Vite.
 - **Styling & Print Media**: Tailwind CSS with custom `@media print` rules for vector rendering and pagination.
-- **Stroke Order & Vector Data**: Integrates the `hanzi-writer-data` library (Make Me a Hanzi / Arphic Public License). Local stroke vectors are bundled in `/data/strokes/` with automatic fallback to the jsDelivr CDN (`https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/`).
+- **Stroke Order & Vector Data**: Integrates the `hanzi-writer-data` library (Make Me a Hanzi / Arphic Public License). Stroke vectors are served via your dedicated CDN at `https://ggez89.github.io/hanzi-writer-data/data/` (with fallback mirrors).
 - **Pronunciation Engine**: Powered by `pinyin-pro` for client-side tone-marked romanization.
 - **Backend / Static Delivery**: Node.js & Express (`server.ts`) serving assets on port 3000.
 
