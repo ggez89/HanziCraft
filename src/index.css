@@ -66,12 +66,16 @@ input[type="range"]::-moz-range-thumb:active {
     print-color-adjust: exact !important;
   }
 
-  /* Strip all parent wrapper paddings, borders, shadows and grey backgrounds */
-  div, main, section {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
+  /* Strip only outer application wrappers so cell borders and lines inside the sheet are preserved */
+  body, #root, .min-h-screen, main {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     box-shadow: none !important;
+    border: none !important;
   }
 
   .no-print {

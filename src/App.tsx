@@ -11,7 +11,7 @@ import { printWorksheet, downloadPdfDocument } from './utils/pdfExport';
 
 const DEFAULT_SETTINGS: WorksheetSettings = {
   title: '基础汉字书写练习',
-  characterSizeMm: 17,
+  characterSizeMm: 18,
   strokeStyle: 'heiti',
   faintTrace: true,
   strokeOrderBreakdown: true,
@@ -69,10 +69,10 @@ export function App() {
     };
   }, [inputText, deduplicate]);
 
-  // Dynamic items per page: at 17mm default exactly 10 fit, at jumbo sizes (21-24mm) it adjusts so pages don't vertically clip
+  // Dynamic items per page: at 18mm standard all 10 fit, at jumbo sizes (22-24mm) it adjusts so pages don't vertically clip
   const itemsPerPage = useMemo(() => {
-    if (settings.characterSizeMm >= 21) return 7;
-    if (settings.characterSizeMm >= 19) return 8;
+    if (settings.characterSizeMm >= 22) return 7;
+    if (settings.characterSizeMm >= 20) return 8;
     return 10;
   }, [settings.characterSizeMm]);
 

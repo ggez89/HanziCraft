@@ -12,26 +12,25 @@ interface WorksheetPageProps {
   onCharacterClick?: (char: CharacterItem) => void;
 }
 
-// Globe + pointer cursor icon matching mathletics (screenshot 1)
+// Custom modern SVG icon for "Website with mouse cursor" matching the screenshot exactly
 const WebsiteGlobeCursorIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
+    xmlns="http://www.w3.org/2000/svg"
     className={className}
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth="1.75"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Globe outer circle */}
-    <circle cx="10" cy="10" r="7.5" />
-    {/* Equator horizontal line */}
-    <line x1="2.5" y1="10" x2="17.5" y2="10" />
-    {/* Vertical curved meridian ellipse */}
-    <ellipse cx="10" cy="10" rx="3.6" ry="7.5" />
-    {/* Mouse pointer arrow at bottom right */}
+    {/* Globe circle and axes */}
+    <circle cx="11" cy="11" r="8" />
+    <path d="M3 11h16" />
+    <path d="M11 3a13 13 0 0 1 0 16 13 13 0 0 1 0-16z" />
+    {/* Modern Arrow Cursor */}
     <path
-      d="M14 13.5l5.5 2-2.5 1 1.6 3-1.4 0.7-1.6-3-1.8 1.8z"
+      d="M15 15l5.5 2-2 1.5 3 3-1.5 1.5-3-3-1.5 2L15 15z"
       fill="currentColor"
       stroke="none"
     />
@@ -45,21 +44,29 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
 }) => {
   // Available printable width (~186mm)
   const availableWidthMm = 186;
-  const rawSize = settings.characterSizeMm || 17;
+  const rawSize = settings.characterSizeMm || 18;
   
-  // Total frames per row dynamically scales so it never overflows
-  const totalSlots = rawSize === 17 ? 11 : Math.max(5, Math.floor(availableWidthMm / rawSize));
+  // Total frames per row dynamically scales so it never overflows (at 18mm: 10 frames = 1 model + 9 practice)
+  const totalSlots = rawSize === 18 ? 10 : Math.max(5, Math.floor(availableWidthMm / rawSize));
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
 
   // Exact pixel size per square fitted across the available width
   const cellPx = Math.floor((availableWidthMm / totalSlots) * 3.78);
 
-  // Maximum rows capacity per page without vertical clipping
-  const maxRowsPerPage = rawSize >= 21 ? 7 : (rawSize >= 19 ? 8 : 10);
+  // Maximum rows capacity per page without vertical clipping (10 rows fit comfortably at 18mm standard)
+  const maxRowsPerPage = rawSize >= 22 ? 7 : (rawSize >= 20 ? 8 : 10);
   
   // Fill remaining capacity with empty practice grids so rows have normal spacing and no gaping empty gaps
   const emptyRowsCount = Math.max(0, maxRowsPerPage - characters.length);
+
+  // Dynamic scaling proportional to the character size slider (14mm to 24mm, base 18mm)
+  const sizeRatio = rawSize / 18;
+  const pinyinFontSizePx = Math.max(11, Math.round(14 * sizeRatio));
+  const strokeOrderSizePx = Math.max(16, Math.round(22 * sizeRatio));
+  const infoLineHeightPx = Math.max(strokeOrderSizePx, pinyinFontSizePx + 4);
+  const infoMarginBottomPx = Math.max(2, Math.round(3 * sizeRatio));
+  const infoGapPx = Math.max(6, Math.round(10 * sizeRatio));
 
   // Title font dynamically matches selected style
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
@@ -98,22 +105,32 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
           {characters.map((item) => {
             return (
               <div key={item.id} className="flex flex-col py-0.5">
-                {/* Top info line: Pinyin on left in black, progressive strokes right next to it */}
+                {/* Top info line: Pinyin on left in black, progressive strokes right next to it, scaled proportionally */}
                 {(settings.pinyin || settings.strokeOrderBreakdown) && (
-                  <div className="flex items-center gap-2 h-4 mb-1 px-0.5">
-                    {/* Tone-marked Pīnyīn in BLACK */}
+                  <div
+                    style={{
+                      height: `${infoLineHeightPx}px`,
+                      marginBottom: `${infoMarginBottomPx}px`,
+                      gap: `${infoGapPx}px`,
+                    }}
+                    className="flex items-center px-0.5"
+                  >
+                    {/* Tone-marked Pīnyīn in BLACK, scaled proportionally */}
                     {settings.pinyin && (
-                      <span className="text-xs font-semibold text-stone-900 font-mono tracking-tight shrink-0">
+                      <span
+                        style={{ fontSize: `${pinyinFontSizePx}px` }}
+                        className="font-semibold text-stone-900 font-mono tracking-tight shrink-0 select-none leading-none"
+                      >
                         {item.pinyin || ''}
                       </span>
                     )}
 
-                    {/* Progressive Stroke Order Breakdown follows Sans-Serif vs Brush toggle */}
+                    {/* Progressive Stroke Order Breakdown, scaled proportionally with character size */}
                     {settings.strokeOrderBreakdown && item.strokeData && (
                       <StrokeOrderDiagram
                         strokeData={item.strokeData}
                         strokeStyle={settings.strokeStyle}
-                        sizePx={Math.max(15, Math.min(22, Math.round(cellPx * 0.28)))}
+                        sizePx={strokeOrderSizePx}
                       />
                     )}
                   </div>
@@ -157,9 +174,14 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
           {Array.from({ length: emptyRowsCount }).map((_, emptyIdx) => {
             return (
               <div key={`empty-row-${emptyIdx}`} className="flex flex-col py-0.5 opacity-80">
-                {/* Top spacer matching pinyin row height */}
+                {/* Top spacer matching proportional pinyin row height */}
                 {(settings.pinyin || settings.strokeOrderBreakdown) && (
-                  <div className="h-4 mb-1" />
+                  <div
+                    style={{
+                      height: `${infoLineHeightPx}px`,
+                      marginBottom: `${infoMarginBottomPx}px`,
+                    }}
+                  />
                 )}
 
                 {/* Empty square grid strip for freehand practice */}

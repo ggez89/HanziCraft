@@ -59,15 +59,18 @@ export const Controls: React.FC<ControlsProps> = ({
 
   // Helper for size description
   const getSizeLabel = (mm: number) => {
-    if (mm <= 13) return `${mm} mm · Small`;
-    if (mm >= 21) return `${mm} mm · Jumbo`;
-    if (mm === 17) return `17 mm · Standard`;
+    if (mm === 14) return `14 mm · Compact`;
+    if (mm === 16) return `16 mm · Small`;
+    if (mm === 18) return `18 mm · Standard`;
+    if (mm === 20) return `20 mm · Medium-Large`;
+    if (mm === 22) return `22 mm · Large`;
+    if (mm === 24) return `24 mm · Jumbo`;
     return `${mm} mm`;
   };
 
   // Calculate practice square breakdown
-  const rawSize = settings.characterSizeMm || 17;
-  const totalSlots = rawSize === 17 ? 11 : Math.max(5, Math.floor(186 / rawSize));
+  const rawSize = settings.characterSizeMm || 18;
+  const totalSlots = rawSize === 18 ? 10 : Math.max(5, Math.floor(186 / rawSize));
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
   const blankSlots = practiceSlots - faintTraceSlots;
@@ -151,9 +154,9 @@ export const Controls: React.FC<ControlsProps> = ({
 
         <input
           type="range"
-          min="12"
+          min="14"
           max="24"
-          step="1"
+          step="2"
           value={settings.characterSizeMm}
           onInput={(e: React.FormEvent<HTMLInputElement>) =>
             updateSetting('characterSizeMm', Number((e.target as HTMLInputElement).value))
@@ -163,8 +166,8 @@ export const Controls: React.FC<ControlsProps> = ({
         />
 
         <div className="flex justify-between text-[11px] text-stone-400 mt-2 font-medium">
-          <span>Small (12 mm)</span>
-          <span>Standard (17 mm)</span>
+          <span>Compact (14 mm)</span>
+          <span className="text-stone-600 font-semibold">Standard (18 mm)</span>
           <span>Jumbo (24 mm)</span>
         </div>
 

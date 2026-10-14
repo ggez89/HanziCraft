@@ -25,6 +25,7 @@ export const GridCell: React.FC<GridCellProps> = ({
   // Inner guidelines colors
   const innerLineColor = '#94a3b8';
   const diagonalLineColor = '#cbd5e1';
+  const outerBorderColor = '#475569';
 
   // Character rendering styles
   const isTrace = mode === 'trace';
@@ -35,7 +36,7 @@ export const GridCell: React.FC<GridCellProps> = ({
     <div
       onClick={onClick}
       style={{ width: `${sizePx}px`, height: `${sizePx}px` }}
-      className={`relative inline-flex items-center justify-center shrink-0 select-none bg-white border-y border-r border-slate-500 first:border-l ${
+      className={`relative inline-flex items-center justify-center shrink-0 select-none bg-white ${
         onClick ? 'cursor-pointer hover:bg-slate-50/60' : ''
       } ${className}`}
     >
@@ -44,19 +45,27 @@ export const GridCell: React.FC<GridCellProps> = ({
         className="w-full h-full"
         style={{ display: 'block' }}
       >
-        {/* Solid Pure White Background - Eliminates any grey background bleedthrough */}
-        <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
+        {/* Solid Pure White Background & Crisp Outer Border */}
+        <rect
+          x="0.6"
+          y="0.6"
+          width="98.8"
+          height="98.8"
+          fill="#ffffff"
+          stroke={outerBorderColor}
+          strokeWidth="1.2"
+        />
 
         {/* Inner Mizige / Tianzige guidelines */}
         {showGridlines && (
           <g>
             {/* Diagonal guidelines */}
-            <line x1="0" y1="0" x2="100" y2="100" stroke={diagonalLineColor} strokeWidth="0.7" />
-            <line x1="100" y1="0" x2="0" y2="100" stroke={diagonalLineColor} strokeWidth="0.7" />
+            <line x1="1" y1="1" x2="99" y2="99" stroke={diagonalLineColor} strokeWidth="0.7" />
+            <line x1="99" y1="1" x2="1" y2="99" stroke={diagonalLineColor} strokeWidth="0.7" />
 
             {/* Cross guidelines */}
-            <line x1="50" y1="0" x2="50" y2="100" stroke={innerLineColor} strokeWidth="0.7" strokeDasharray="3,2" />
-            <line x1="0" y1="50" x2="100" y2="50" stroke={innerLineColor} strokeWidth="0.7" strokeDasharray="3,2" />
+            <line x1="50" y1="1" x2="50" y2="99" stroke={innerLineColor} strokeWidth="0.7" strokeDasharray="3,2" />
+            <line x1="1" y1="50" x2="99" y2="50" stroke={innerLineColor} strokeWidth="0.7" strokeDasharray="3,2" />
           </g>
         )}
 

@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { domToJpeg } from 'modern-screenshot';
 
 /**
  * Triggers the browser's native print dialog which utilizes @media print
@@ -11,7 +11,7 @@ export function printWorksheet(): void {
 
 /**
  * Generates and downloads a real PDF file directly to the user's downloads folder.
- * Uses html2canvas at high resolution (scale: 2) and jsPDF to bundle all worksheet pages.
+ * Uses modern-screenshot (supporting modern CSS including oklch, color-mix, CSS variables) and jsPDF.
  */
 export async function downloadPdfDocument(
   title: string,
@@ -22,7 +22,7 @@ export async function downloadPdfDocument(
     throw new Error('No printable worksheet pages found.');
   }
 
-  onProgress?.('Preparing PDF pages...');
+  onProgress?.('Preparing PDF document...');
 
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -37,16 +37,12 @@ export async function downloadPdfDocument(
     onProgress?.(`Rendering page ${i + 1} of ${totalPages}...`);
     const pageEl = pageElements[i];
 
-    // Render page element to high-res canvas (scale 2.5 for crystal-sharp print quality)
-    const canvas = await html2canvas(pageEl, {
-      scale: 2.5,
-      useCORS: true,
-      logging: false,
+    // High-resolution snapshot with native support for oklch and modern CSS
+    const imgData = await domToJpeg(pageEl, {
+      scale: 2,
       backgroundColor: '#ffffff',
-      windowWidth: pageEl.scrollWidth,
+      quality: 0.95,
     });
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
     if (i > 0) {
       pdf.addPage('a4', 'portrait');
