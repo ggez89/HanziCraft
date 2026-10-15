@@ -3,7 +3,7 @@ import { WorksheetSettings, StrokeStyle } from '../types';
 import {
   PenLine,
   FileText,
-  MessageSquare,
+  MessageCircle,
   LayoutGrid,
   User,
   Download,
@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronDown,
   Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { printWorksheet } from '../utils/pdfExport';
 
@@ -35,6 +36,21 @@ const PRESETS = [
   { name: 'Study', text: '看读书写学习字文听' },
 ];
 
+const SpeechBubbleIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    {/* Oval speech bubble with a distinct, prominent comic pointer tail */}
+    <path d="M12 3c5.5 0 10 3.6 10 8s-4.5 8-10 8c-1.3 0-2.5-.2-3.6-.6L3 21l1.7-4.4C3.6 15.2 2 13.2 2 11c0-4.4 4.5-8 10-8z" />
+  </svg>
+);
+
 export const Controls: React.FC<ControlsProps> = ({
   inputText,
   setInputText,
@@ -49,6 +65,31 @@ export const Controls: React.FC<ControlsProps> = ({
   pdfStatus = '',
 }) => {
   const [outputSettingsOpen, setOutputSettingsOpen] = useState(false);
+  const [exceededLimit, setExceededLimit] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    if (val.length > 100) {
+      setInputText(val.slice(0, 100));
+      setExceededLimit(true);
+    } else {
+      setInputText(val);
+      if (val.length < 100) {
+        setExceededLimit(false);
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (
+      inputText.length >= 100 &&
+      !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab'].includes(e.key) &&
+      !e.ctrlKey &&
+      !e.metaKey
+    ) {
+      setExceededLimit(true);
+    }
+  };
 
   const updateSetting = <K extends keyof WorksheetSettings>(
     key: K,
@@ -106,11 +147,21 @@ export const Controls: React.FC<ControlsProps> = ({
         </div>
         <textarea
           value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          maxLength={100}
           placeholder="一二三四五六七八九十"
           rows={3}
           className="w-full px-3.5 py-2.5 text-stone-900 text-base border border-stone-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white shadow-2xs font-heiti font-normal resize-none leading-relaxed"
         />
+
+        {/* Warning banner displayed ONLY when trying to exceed 100 characters */}
+        {exceededLimit && (
+          <div className="flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mt-2">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
+            <span>Maximum limit of 100 characters reached. Extra characters were omitted.</span>
+          </div>
+        )}
 
         {/* Presets */}
         <div className="flex items-center gap-2 mt-2.5 flex-wrap">
@@ -119,7 +170,10 @@ export const Controls: React.FC<ControlsProps> = ({
             <button
               key={p.name}
               type="button"
-              onClick={() => setInputText(p.text)}
+              onClick={() => {
+                setInputText(p.text);
+                setExceededLimit(false);
+              }}
               className="text-xs px-2.5 py-1 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium border border-stone-200/80 transition-colors cursor-pointer"
             >
               {p.name}
@@ -178,12 +232,9 @@ export const Controls: React.FC<ControlsProps> = ({
 
       {/* FONT & STROKE STYLE CARD (2 options only: Sans-Serif and Brush Calligraphy) */}
       <div className="border border-stone-200 rounded-2xl p-4 bg-white shadow-2xs">
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3">
           <span className="text-xs font-bold text-stone-700 tracking-wider uppercase">
             Font & Stroke Style
-          </span>
-          <span className="text-xs font-bold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
-            {settings.strokeStyle === 'heiti' ? 'Sans-Serif (黑体)' : 'Brush / Calligraphy (楷体)'}
           </span>
         </div>
 
@@ -277,7 +328,7 @@ export const Controls: React.FC<ControlsProps> = ({
         {/* 3. Pīnyīn Pronunciation */}
         <div className="flex items-center justify-between p-3.5 bg-white border border-stone-200 rounded-xl shadow-2xs">
           <div className="flex items-start gap-3">
-            <MessageSquare className="w-4 h-4 text-stone-500 mt-0.5 shrink-0" />
+            <SpeechBubbleIcon className="w-4 h-4 text-stone-500 mt-0.5 shrink-0" />
             <div>
               <div className="text-sm font-semibold text-stone-800">Pīnyīn Pronunciation</div>
               <div className="text-xs text-stone-500">Tone-marked pinyin for each character</div>
@@ -361,8 +412,9 @@ export const Controls: React.FC<ControlsProps> = ({
         </div>
       </div>
 
-      {/* ACTION BUTTONS (Full width prominent buttons) */}
+      {/* ACTION BUTTONS */}
       <div className="space-y-3 pt-2">
+        {/* Primary: Real Vector PDF direct download */}
         <button
           type="button"
           onClick={onDownloadPdf}
@@ -374,15 +426,16 @@ export const Controls: React.FC<ControlsProps> = ({
           ) : (
             <Download className="w-4 h-4 stroke-[2.5]" />
           )}
-          <span>{isGeneratingPdf ? (pdfStatus || 'Generating PDF...') : 'Generate & Download PDF'}</span>
+          <span>{isGeneratingPdf ? (pdfStatus || 'Generating PDF...') : 'Download PDF'}</span>
         </button>
 
+        {/* Secondary: Native Print dialog */}
         <button
           type="button"
           onClick={printWorksheet}
-          className="w-full py-3 px-4 bg-stone-100 hover:bg-stone-200 active:bg-stone-300 text-stone-700 font-semibold text-sm rounded-xl border border-stone-200/80 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 px-4 bg-stone-100 hover:bg-stone-200 active:bg-stone-300 text-stone-700 font-semibold text-xs rounded-xl border border-stone-200/80 transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
-          <Printer className="w-4 h-4" />
+          <Printer className="w-3.5 h-3.5 text-stone-600" />
           <span>Print Directly</span>
         </button>
       </div>

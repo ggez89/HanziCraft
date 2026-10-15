@@ -1,17 +1,17 @@
 import { jsPDF } from 'jspdf';
-import { domToJpeg } from 'modern-screenshot';
+import { domToPng } from 'modern-screenshot';
 
 /**
- * Triggers the browser's native print dialog which utilizes @media print
- * to generate pristine, physical prints with no browser headers/footers.
+ * Triggers the browser's native print dialog which generates a 100% True Vector PDF
+ * when selecting "Save as PDF" in the destination dropdown.
  */
 export function printWorksheet(): void {
   window.print();
 }
 
 /**
- * Generates and downloads a real PDF file directly to the user's downloads folder.
- * Uses modern-screenshot (supporting modern CSS including oklch, color-mix, CSS variables) and jsPDF.
+ * Generates and downloads a high-resolution lossless PDF document directly.
+ * Uses modern-screenshot at 3x scale (300 DPI print standard) and jsPDF.
  */
 export async function downloadPdfDocument(
   title: string,
@@ -22,7 +22,7 @@ export async function downloadPdfDocument(
     throw new Error('No printable worksheet pages found.');
   }
 
-  onProgress?.('Preparing PDF document...');
+  onProgress?.('Preparing high-res pages...');
 
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -34,14 +34,13 @@ export async function downloadPdfDocument(
   const totalPages = pageElements.length;
 
   for (let i = 0; i < totalPages; i++) {
-    onProgress?.(`Rendering page ${i + 1} of ${totalPages}...`);
+    onProgress?.(`Rendering page ${i + 1} of ${totalPages} (300 DPI)...`);
     const pageEl = pageElements[i];
 
-    // High-resolution snapshot with native support for oklch and modern CSS
-    const imgData = await domToJpeg(pageEl, {
-      scale: 2,
+    // High-resolution lossless PNG snapshot (scale 3 = 300 DPI print standard)
+    const imgData = await domToPng(pageEl, {
+      scale: 3,
       backgroundColor: '#ffffff',
-      quality: 0.95,
     });
 
     if (i > 0) {
@@ -49,7 +48,7 @@ export async function downloadPdfDocument(
     }
 
     // A4 dimensions: exactly 210mm x 297mm
-    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
   }
 
   onProgress?.('Saving PDF file...');

@@ -94,7 +94,7 @@ input[type="range"]::-moz-range-thumb:active {
     min-height: 297mm !important;
     max-height: 297mm !important;
     box-sizing: border-box !important;
-    padding: 12mm 14mm 10mm 14mm !important;
+    padding: 6mm 12mm 5mm 12mm !important;
     margin: 0 !important;
     background: #ffffff !important;
     background-color: #ffffff !important;

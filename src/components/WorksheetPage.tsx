@@ -12,7 +12,7 @@ interface WorksheetPageProps {
   onCharacterClick?: (char: CharacterItem) => void;
 }
 
-// Custom modern SVG icon for "Website with mouse cursor" matching the screenshot exactly
+// Custom modern SVG icon for "Website with mouse cursor" matching the design
 const WebsiteGlobeCursorIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
   <svg
     viewBox="0 0 24 24"
@@ -40,6 +40,8 @@ const WebsiteGlobeCursorIcon: React.FC<{ className?: string }> = ({ className = 
 export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   characters,
   settings,
+  pageIndex = 0,
+  totalPages = 1,
   onCharacterClick,
 }) => {
   // Available printable width (~186mm)
@@ -62,25 +64,25 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
 
   // Dynamic scaling proportional to the character size slider (14mm to 24mm, base 18mm)
   const sizeRatio = rawSize / 18;
-  const pinyinFontSizePx = Math.max(11, Math.round(14 * sizeRatio));
-  const strokeOrderSizePx = Math.max(16, Math.round(22 * sizeRatio));
-  const infoLineHeightPx = Math.max(strokeOrderSizePx, pinyinFontSizePx + 4);
-  const infoMarginBottomPx = Math.max(2, Math.round(3 * sizeRatio));
-  const infoGapPx = Math.max(6, Math.round(10 * sizeRatio));
+  const pinyinFontSizePx = Math.max(10, Math.round(12 * sizeRatio));
+  const strokeOrderSizePx = Math.max(14, Math.round(18 * sizeRatio));
+  const infoLineHeightPx = Math.max(strokeOrderSizePx, pinyinFontSizePx + 2);
+  const infoMarginBottomPx = Math.max(1.5, Math.round(2 * sizeRatio));
+  const infoGapPx = Math.max(5, Math.round(8 * sizeRatio));
 
   // Title font dynamically matches selected style
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
 
   return (
-    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-6 sm:p-7 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] box-border relative flex flex-col justify-between select-none">
+    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-5 sm:p-6 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] box-border relative flex flex-col justify-between select-none">
       <div className="flex-1 flex flex-col">
         {/* Page Header: Left-aligned Logo + Worksheet Title, with Name on right */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-2 px-0.5">
+        <div className="mb-2">
+          <div className="flex items-center justify-between mb-1.5 px-0.5">
             {/* Top Left: Logo + Worksheet Title (left-aligned together) */}
-            <div className="flex items-center gap-2.5">
-              <HanziLogo size={28} />
-              <h1 className={`text-base sm:text-lg font-bold text-stone-900 tracking-wide ${titleFontClass}`}>
+            <div className="flex items-center gap-2">
+              <HanziLogo size={24} />
+              <h1 className={`text-base font-bold text-stone-900 tracking-wide ${titleFontClass}`}>
                 {settings.title || '基础汉字书写练习'}
               </h1>
             </div>
@@ -89,7 +91,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
             <div className="text-xs sm:text-sm font-medium text-stone-900 text-right shrink-0">
               {settings.headerStudentName && (
                 <span>
-                  姓名：<span className="inline-block border-b border-stone-800 w-28 sm:w-36"></span>
+                  姓名：<span className="inline-block border-b border-stone-800 w-24 sm:w-32"></span>
                 </span>
               )}
             </div>
@@ -99,12 +101,12 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
           <div className="border-b-2 border-stone-900 w-full" />
         </div>
 
-        {/* Character Rows with normal whitespace */}
-        <div className="flex-1 flex flex-col justify-between py-1">
+        {/* Character Rows with compact, calibrated spacing */}
+        <div className="flex-1 flex flex-col justify-between py-0.5">
           {/* 1. Rows with practice characters */}
           {characters.map((item) => {
             return (
-              <div key={item.id} className="flex flex-col py-0.5">
+              <div key={item.id} className="flex flex-col py-0">
                 {/* Top info line: Pinyin on left in black, progressive strokes right next to it, scaled proportionally */}
                 {(settings.pinyin || settings.strokeOrderBreakdown) && (
                   <div
@@ -173,7 +175,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
           {/* 2. Empty square grid rows for remaining capacity on the page for practice */}
           {Array.from({ length: emptyRowsCount }).map((_, emptyIdx) => {
             return (
-              <div key={`empty-row-${emptyIdx}`} className="flex flex-col py-0.5 opacity-80">
+              <div key={`empty-row-${emptyIdx}`} className="flex flex-col py-0 opacity-80">
                 {/* Top spacer matching proportional pinyin row height */}
                 {(settings.pinyin || settings.strokeOrderBreakdown) && (
                   <div
@@ -202,19 +204,26 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
         </div>
       </div>
 
-      {/* Page Footer matching mathletics (Screenshot 1) */}
-      <div className="border-t border-stone-200/90 pt-2.5 mt-2 flex items-center">
+      {/* Page Footer */}
+      <div className="border-t border-stone-200/90 pt-1.5 mt-1 flex items-center justify-between">
         <a
           href="https://hanzi.patrickyou.ng"
           target="_blank"
           rel="noreferrer"
           className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors"
         >
-          <WebsiteGlobeCursorIcon className="w-4 h-4 text-slate-400" />
+          <WebsiteGlobeCursorIcon className="w-3.5 h-3.5 text-slate-400" />
           <span className="font-semibold text-slate-500 text-xs tracking-tight">
             hanzi.patrickyou.ng
           </span>
         </a>
+
+        {/* Page counter matching Mathletics: only shown when totalPages > 1 */}
+        {totalPages > 1 && (
+          <span className="font-mono text-[11px] font-bold text-slate-400 tracking-wider uppercase select-none">
+            PAGE {pageIndex + 1} OF {totalPages}
+          </span>
+        )}
       </div>
     </div>
   );
