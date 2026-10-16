@@ -7,8 +7,7 @@ import { Controls } from './components/Controls';
 import { WorksheetPage } from './components/WorksheetPage';
 import { CharacterModal } from './components/CharacterModal';
 import { Eye, Printer, ChevronLeft, ChevronRight, Sliders } from 'lucide-react';
-import { printWorksheet } from './utils/pdfExport';
-import { downloadRealVectorPdf } from './utils/vectorPdfExport';
+import { printWorksheet, downloadPdfDocument } from './utils/pdfExport';
 
 const DEFAULT_SETTINGS: WorksheetSettings = {
   title: '基础汉字书写练习',
@@ -120,13 +119,13 @@ export function App() {
     if (isGeneratingPdf) return;
     try {
       setIsGeneratingPdf(true);
-      await downloadRealVectorPdf(pages, settings, (status) => {
+      await downloadPdfDocument(settings.title, (status) => {
         setPdfStatus(status);
       });
     } catch (err: unknown) {
-      console.error('Failed to generate Vector PDF:', err);
+      console.error('Failed to generate PDF:', err);
       const msg = err instanceof Error ? err.message : String(err);
-      alert(`Could not generate Vector PDF: ${msg}`);
+      alert(`Could not generate PDF: ${msg}`);
     } finally {
       setIsGeneratingPdf(false);
       setPdfStatus('');
@@ -178,7 +177,7 @@ export function App() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="no-print grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left panel: English Controls (Visible on lg, or when mobileTab is 'setup') */}
           <div
             className={`lg:col-span-5 xl:col-span-4 no-print ${
@@ -290,7 +289,7 @@ export function App() {
                   {pages.map((pageChars, idx) => (
                     <div
                       key={idx}
-                      className={idx === currentPageIndex ? 'block w-full' : 'hidden print:block w-full'}
+                      className={idx === currentPageIndex ? 'block w-full' : 'hidden w-full'}
                     >
                       <WorksheetPage
                         characters={pageChars}
@@ -332,6 +331,20 @@ export function App() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Dedicated Pristine Print Mount: unscaled full A4 pages for Native Print & PDF Export */}
+        <div id="print-mount" className="hidden print:block w-[210mm]">
+          {pages.map((pageChars, idx) => (
+            <div key={`print-page-${idx}`} className="print-page-wrapper">
+              <WorksheetPage
+                characters={pageChars}
+                settings={settings}
+                pageIndex={idx}
+                totalPages={pages.length}
+              />
+            </div>
+          ))}
         </div>
       </main>
 

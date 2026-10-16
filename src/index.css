@@ -72,21 +72,56 @@ input[type="range"]::-moz-range-thumb:active {
     padding: 0 !important;
     min-height: 0 !important;
     height: auto !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
     box-shadow: none !important;
     border: none !important;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  .print-only {
     display: block !important;
   }
 
+  .no-print,
+  header,
+  nav,
+  aside,
+  button {
+    display: none !important;
+  }
+
+  /* Dedicated Print Container is unhidden and cleanly displayed */
+  #print-mount {
+    display: block !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    visibility: visible !important;
+  }
+
+  .print-page-wrapper {
+    display: block !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-page-wrapper:not(:last-child) {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .print-page-wrapper:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+    margin-bottom: 0 !important;
+  }
+
   .print-container {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
     width: 210mm !important;
     min-width: 210mm !important;
     max-width: 210mm !important;
@@ -95,7 +130,7 @@ input[type="range"]::-moz-range-thumb:active {
     max-height: 297mm !important;
     box-sizing: border-box !important;
     padding: 6mm 12mm 5mm 12mm !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
     box-shadow: none !important;
@@ -106,7 +141,6 @@ input[type="range"]::-moz-range-thumb:active {
     break-inside: avoid !important;
   }
 
-  /* Break page ONLY between multiple pages; never on or after the last page! */
   .print-container:not(:last-child) {
     page-break-after: always !important;
     break-after: page !important;

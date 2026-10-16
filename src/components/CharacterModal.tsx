@@ -107,7 +107,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
   if (!item) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+    <div className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-stone-200">
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-stone-50">

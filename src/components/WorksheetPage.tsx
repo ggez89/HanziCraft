@@ -3,6 +3,7 @@ import { CharacterItem, WorksheetSettings } from '../types';
 import { GridCell } from './GridCell';
 import { StrokeOrderDiagram } from './StrokeOrderDiagram';
 import { HanziLogo } from './HanziLogo';
+import { Globe, MousePointer2 } from 'lucide-react';
 
 interface WorksheetPageProps {
   characters: CharacterItem[];
@@ -12,30 +13,6 @@ interface WorksheetPageProps {
   onCharacterClick?: (char: CharacterItem) => void;
 }
 
-// Custom modern SVG icon for "Website with mouse cursor" matching the design
-const WebsiteGlobeCursorIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    stroke="currentColor"
-    strokeWidth="1.75"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {/* Globe circle and axes */}
-    <circle cx="11" cy="11" r="8" />
-    <path d="M3 11h16" />
-    <path d="M11 3a13 13 0 0 1 0 16 13 13 0 0 1 0-16z" />
-    {/* Modern Arrow Cursor */}
-    <path
-      d="M15 15l5.5 2-2 1.5 3 3-1.5 1.5-3-3-1.5 2L15 15z"
-      fill="currentColor"
-      stroke="none"
-    />
-  </svg>
-);
 
 export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   characters,
@@ -204,27 +181,31 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
         </div>
       </div>
 
-      {/* Page Footer */}
-      <div className="border-t border-stone-200/90 pt-1.5 mt-1 flex items-center justify-between">
+      {/* Page Footer matching Mathletics */}
+      <footer className="border-t border-stone-200/90 pt-2 mt-auto flex items-center justify-between text-gray-400 print:text-gray-600 shrink-0">
         <a
           href="https://hanzi.patrickyou.ng"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors"
+          className="flex items-center gap-2 text-gray-400 hover:text-gray-700 print:text-gray-600 text-[14px] font-sans font-medium transition-colors"
         >
-          <WebsiteGlobeCursorIcon className="w-3.5 h-3.5 text-slate-400" />
-          <span className="font-semibold text-slate-500 text-xs tracking-tight">
-            hanzi.patrickyou.ng
-          </span>
+          <div className="relative inline-flex items-center justify-center w-5 h-5 shrink-0">
+            <Globe size={16} className="text-gray-400 print:text-gray-600" />
+            <MousePointer2
+              size={9}
+              className="absolute -bottom-0.5 -right-0.5 text-gray-400 print:text-gray-600 fill-current"
+            />
+          </div>
+          <span>hanzi.patrickyou.ng</span>
         </a>
 
         {/* Page counter matching Mathletics: only shown when totalPages > 1 */}
         {totalPages > 1 && (
-          <span className="font-mono text-[11px] font-bold text-slate-400 tracking-wider uppercase select-none">
+          <div className="text-gray-500 font-bold text-[11px] print:text-gray-700 font-mono tracking-wider select-none">
             PAGE {pageIndex + 1} OF {totalPages}
-          </span>
+          </div>
         )}
-      </div>
+      </footer>
     </div>
   );
 };
