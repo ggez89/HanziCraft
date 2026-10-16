@@ -30,8 +30,8 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
 
-  // Exact pixel size per square fitted across the available width (~66-68px at standard 18mm)
-  const cellPx = Math.floor((availableWidthMm / totalSlots) * 3.62);
+  // Exact pixel size per square fitted across the available width (~64-65px at standard 18mm)
+  const cellPx = Math.floor((availableWidthMm / totalSlots) * 3.52);
 
   // Exactly 10 rows capacity per page so standard 1-10 practice sheets fit on 1 page without vertical overflow
   const maxRowsPerPage = 10;
@@ -51,15 +51,15 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
 
   return (
-    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-4 sm:p-5 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] box-border relative flex flex-col justify-between select-none">
+    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-4 sm:p-5 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] print:min-h-0 print:h-auto print:max-h-[262mm] box-border relative flex flex-col justify-between select-none">
       <div className="flex-1 flex flex-col">
         {/* Page Header: Left-aligned Logo + Worksheet Title, with Name on right */}
-        <div className="mb-1.5">
-          <div className="flex items-center justify-between mb-1.5 px-0.5">
+        <div className="mb-1">
+          <div className="flex items-center justify-between mb-1 px-0.5">
             {/* Top Left: Logo + Worksheet Title (left-aligned together) */}
             <div className="flex items-center gap-2">
-              <HanziLogo size={24} />
-              <h1 className={`text-base font-bold text-stone-900 tracking-wide ${titleFontClass}`}>
+              <HanziLogo size={22} />
+              <h1 className={`text-sm sm:text-base font-bold text-stone-900 tracking-wide ${titleFontClass}`}>
                 {settings.title || '基础汉字书写练习'}
               </h1>
             </div>
@@ -79,11 +79,11 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
         </div>
 
         {/* Character Rows with compact, calibrated spacing */}
-        <div className="flex-1 flex flex-col justify-between py-0.5">
+        <div className="flex-1 flex flex-col justify-between py-0.5 print:py-0 print:gap-1">
           {/* 1. Rows with practice characters */}
           {characters.map((item) => {
             return (
-              <div key={item.id} className="flex flex-col py-0">
+              <div key={item.id} className="flex flex-col py-0 break-inside-avoid print:break-inside-avoid">
                 {/* Top info line: Pinyin on left in black, progressive strokes right next to it, scaled proportionally */}
                 {(settings.pinyin || settings.strokeOrderBreakdown) && (
                   <div
@@ -152,7 +152,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
           {/* 2. Empty square grid rows for remaining capacity on the page for practice */}
           {Array.from({ length: emptyRowsCount }).map((_, emptyIdx) => {
             return (
-              <div key={`empty-row-${emptyIdx}`} className="flex flex-col py-0 opacity-80">
+              <div key={`empty-row-${emptyIdx}`} className="flex flex-col py-0 opacity-80 break-inside-avoid print:break-inside-avoid">
                 {/* Top spacer matching proportional pinyin row height */}
                 {(settings.pinyin || settings.strokeOrderBreakdown) && (
                   <div

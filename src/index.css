@@ -129,11 +129,11 @@ input[type="range"]::-moz-range-thumb:active {
     flex-direction: column !important;
     justify-content: space-between !important;
     width: 210mm !important;
-    max-width: 210mm !important;
-    height: 285mm !important;
-    max-height: 285mm !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 260mm !important;
     box-sizing: border-box !important;
-    padding: 4mm 12mm 4mm 12mm !important;
+    padding: 4mm 10mm 3mm 10mm !important;
     margin: 0 auto !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
