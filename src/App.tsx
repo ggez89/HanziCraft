@@ -268,8 +268,8 @@ export function App() {
               {/* Scaled viewport container */}
               <div
                 style={{
-                  width: previewScale < 1 ? `${Math.round(794 * previewScale)}px` : 'auto',
-                  height: previewScale < 1 ? `${Math.round(1123 * previewScale)}px` : 'auto',
+                  width: previewScale < 1 ? `${Math.round(794 * previewScale)}px` : '794px',
+                  height: previewScale < 1 ? `${Math.round(1123 * previewScale)}px` : '1123px',
                 }}
                 className="relative flex justify-center print:!w-auto print:!h-auto print:!m-0"
               >
@@ -278,7 +278,7 @@ export function App() {
                     transform: previewScale < 1 ? `scale(${previewScale})` : 'none',
                     transformOrigin: 'top center',
                     width: '210mm',
-                    minHeight: '297mm',
+                    height: '297mm',
                   }}
                   className="print:!transform-none print:!w-auto print:!min-h-0"
                 >

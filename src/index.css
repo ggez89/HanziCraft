@@ -50,7 +50,7 @@ input[type="range"]::-moz-range-thumb:active {
   }
 
   @page {
-    size: auto;
+    size: 210mm 297mm;
     margin: 0;
   }
 
@@ -65,7 +65,7 @@ input[type="range"]::-moz-range-thumb:active {
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100% !important;
+    width: 210mm !important;
     height: auto !important;
     overflow: visible !important;
   }
@@ -76,8 +76,8 @@ input[type="range"]::-moz-range-thumb:active {
     padding: 0 !important;
     min-height: 0 !important;
     height: auto !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
     box-shadow: none !important;
@@ -105,11 +105,13 @@ input[type="range"]::-moz-range-thumb:active {
   .print-page-wrapper {
     display: block !important;
     width: 210mm !important;
+    height: 297mm !important;
     margin: 0 auto !important;
     padding: 0 !important;
     box-sizing: border-box !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+    overflow: hidden !important;
   }
 
   /* Page break ONLY between multiple pages; never on or after the last page! */
@@ -130,10 +132,11 @@ input[type="range"]::-moz-range-thumb:active {
     justify-content: space-between !important;
     width: 210mm !important;
     max-width: 100% !important;
-    height: 268mm !important;
-    max-height: 268mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
     box-sizing: border-box !important;
-    padding: 6mm 10mm 5mm 10mm !important;
+    padding: 6mm 10mm 4mm 10mm !important;
     margin: 0 auto !important;
     background: #ffffff !important;
     background-color: #ffffff !important;

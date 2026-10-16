@@ -30,15 +30,6 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
 
-  // Exact pixel size per square fitted across the available width (~64-65px at standard 18mm)
-  const cellPx = Math.floor((availableWidthMm / totalSlots) * 3.52);
-
-  // Exactly 10 rows capacity per page so standard 1-10 practice sheets fit on 1 page without vertical overflow
-  const maxRowsPerPage = 10;
-  
-  // Fill remaining capacity with empty practice grids so rows have normal spacing and no gaping empty gaps
-  const emptyRowsCount = Math.max(0, maxRowsPerPage - characters.length);
-
   // Dynamic scaling proportional to the character size slider (14mm to 24mm, base 18mm)
   const sizeRatio = rawSize / 18;
   const pinyinFontSizePx = Math.max(9, Math.round(11 * sizeRatio));
@@ -47,12 +38,25 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const infoMarginBottomPx = Math.max(1, Math.round(1.5 * sizeRatio));
   const infoGapPx = Math.max(4, Math.round(6 * sizeRatio));
 
+  // Exactly 10 rows capacity per page so standard 1-10 practice sheets fit on 1 page without vertical overflow
+  const maxRowsPerPage = 10;
+  
+  // Fill remaining capacity with empty practice grids so rows have normal spacing and no gaping empty gaps
+  const emptyRowsCount = Math.max(0, maxRowsPerPage - characters.length);
+
+  // Exact pixel size per square fitted across the available width and guaranteed to fit 10 rows vertically
+  const maxCellHeight = Math.floor(
+    (960 / maxRowsPerPage) -
+      (settings.pinyin || settings.strokeOrderBreakdown ? infoLineHeightPx + infoMarginBottomPx : 0)
+  );
+  const cellPx = Math.min(Math.floor((availableWidthMm / totalSlots) * 3.52), maxCellHeight);
+
   // Title font dynamically matches selected style
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
 
   return (
-    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-4 sm:p-5 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] print:min-h-0 print:h-[268mm] print:max-h-[268mm] box-border relative flex flex-col justify-between select-none">
-      <div className="flex-1 flex flex-col justify-between">
+    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto px-5 pt-5 pb-3 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] h-[297mm] max-h-[297mm] print:w-[210mm] print:h-[297mm] print:min-h-[297mm] print:max-h-[297mm] box-border relative flex flex-col justify-between overflow-hidden select-none">
+      <div className="flex-1 min-h-0 flex flex-col justify-between">
         {/* Page Header: Left-aligned Logo + Worksheet Title, with Name on right */}
         <div className="mb-1 shrink-0">
           <div className="flex items-center justify-between mb-1 px-0.5">
@@ -79,7 +83,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
         </div>
 
         {/* Character Rows evenly and beautifully distributed down to the footer */}
-        <div className="flex-1 flex flex-col justify-between py-1">
+        <div className="flex-1 min-h-0 flex flex-col justify-between py-1">
           {/* 1. Rows with practice characters */}
           {characters.map((item) => {
             return (
