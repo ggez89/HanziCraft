@@ -51,10 +51,10 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
 
   return (
-    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-4 sm:p-5 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] print:min-h-0 print:h-auto print:max-h-[262mm] box-border relative flex flex-col justify-between select-none">
-      <div className="flex-1 flex flex-col">
+    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-4 sm:p-5 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] print:min-h-0 print:h-[268mm] print:max-h-[268mm] box-border relative flex flex-col justify-between select-none">
+      <div className="flex-1 flex flex-col justify-between">
         {/* Page Header: Left-aligned Logo + Worksheet Title, with Name on right */}
-        <div className="mb-1">
+        <div className="mb-1 shrink-0">
           <div className="flex items-center justify-between mb-1 px-0.5">
             {/* Top Left: Logo + Worksheet Title (left-aligned together) */}
             <div className="flex items-center gap-2">
@@ -78,8 +78,8 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
           <div className="border-b-2 border-stone-900 w-full" />
         </div>
 
-        {/* Character Rows with compact, calibrated spacing */}
-        <div className="flex-1 flex flex-col justify-between py-0.5 print:py-0 print:gap-1">
+        {/* Character Rows evenly and beautifully distributed down to the footer */}
+        <div className="flex-1 flex flex-col justify-between py-1">
           {/* 1. Rows with practice characters */}
           {characters.map((item) => {
             return (
