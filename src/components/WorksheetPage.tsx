@@ -30,31 +30,31 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
 
-  // Exact pixel size per square fitted across the available width
-  const cellPx = Math.floor((availableWidthMm / totalSlots) * 3.78);
+  // Exact pixel size per square fitted across the available width (~66-68px at standard 18mm)
+  const cellPx = Math.floor((availableWidthMm / totalSlots) * 3.62);
 
-  // Maximum rows capacity per page without vertical clipping (10 rows fit comfortably at 18mm standard)
-  const maxRowsPerPage = rawSize >= 22 ? 7 : (rawSize >= 20 ? 8 : 10);
+  // Exactly 10 rows capacity per page so standard 1-10 practice sheets fit on 1 page without vertical overflow
+  const maxRowsPerPage = 10;
   
   // Fill remaining capacity with empty practice grids so rows have normal spacing and no gaping empty gaps
   const emptyRowsCount = Math.max(0, maxRowsPerPage - characters.length);
 
   // Dynamic scaling proportional to the character size slider (14mm to 24mm, base 18mm)
   const sizeRatio = rawSize / 18;
-  const pinyinFontSizePx = Math.max(10, Math.round(12 * sizeRatio));
-  const strokeOrderSizePx = Math.max(14, Math.round(18 * sizeRatio));
+  const pinyinFontSizePx = Math.max(9, Math.round(11 * sizeRatio));
+  const strokeOrderSizePx = Math.max(12, Math.round(15 * sizeRatio));
   const infoLineHeightPx = Math.max(strokeOrderSizePx, pinyinFontSizePx + 2);
-  const infoMarginBottomPx = Math.max(1.5, Math.round(2 * sizeRatio));
-  const infoGapPx = Math.max(5, Math.round(8 * sizeRatio));
+  const infoMarginBottomPx = Math.max(1, Math.round(1.5 * sizeRatio));
+  const infoGapPx = Math.max(4, Math.round(6 * sizeRatio));
 
   // Title font dynamically matches selected style
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
 
   return (
-    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-5 sm:p-6 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] box-border relative flex flex-col justify-between select-none">
+    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto p-4 sm:p-5 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] min-h-[297mm] box-border relative flex flex-col justify-between select-none">
       <div className="flex-1 flex flex-col">
         {/* Page Header: Left-aligned Logo + Worksheet Title, with Name on right */}
-        <div className="mb-2">
+        <div className="mb-1.5">
           <div className="flex items-center justify-between mb-1.5 px-0.5">
             {/* Top Left: Logo + Worksheet Title (left-aligned together) */}
             <div className="flex items-center gap-2">

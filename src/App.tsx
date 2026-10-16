@@ -97,12 +97,8 @@ export function App() {
     };
   }, [inputText, deduplicate]);
 
-  // Dynamic items per page: at 18mm standard all 10 fit, at jumbo sizes (22-24mm) it adjusts so pages don't vertically clip
-  const itemsPerPage = useMemo(() => {
-    if (settings.characterSizeMm >= 22) return 7;
-    if (settings.characterSizeMm >= 20) return 8;
-    return 10;
-  }, [settings.characterSizeMm]);
+  // Exactly 10 characters per page so the 1-10 preset fits on a single page
+  const itemsPerPage = 10;
 
   const pages = useMemo(() => {
     const result: CharacterItem[][] = [];

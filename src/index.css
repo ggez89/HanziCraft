@@ -42,11 +42,16 @@ input[type="range"]::-moz-range-thumb:active {
   transform: scale(1.1);
 }
 
-/* PURE PRINT MEDIA RULES - Outside of any layer for highest cascade priority */
+/* PURE PRINT MEDIA RULES - Clean cascading rules matching Mathletics */
 @media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   @page {
-    size: A4 portrait;
-    margin: 0 !important;
+    size: auto;
+    margin: 0;
   }
 
   *, *::before, *::after {
@@ -54,16 +59,15 @@ input[type="range"]::-moz-range-thumb:active {
     text-shadow: none !important;
   }
 
-  html, body {
+  html, body, #root {
     background: #ffffff !important;
     background-color: #ffffff !important;
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 210mm !important;
+    width: 100% !important;
     height: auto !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    overflow: visible !important;
   }
 
   /* Strip only outer application wrappers so cell borders and lines inside the sheet are preserved */
@@ -72,8 +76,8 @@ input[type="range"]::-moz-range-thumb:active {
     padding: 0 !important;
     min-height: 0 !important;
     height: auto !important;
-    width: 210mm !important;
-    max-width: 210mm !important;
+    width: 100% !important;
+    max-width: 100% !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
     box-shadow: none !important;
@@ -93,7 +97,7 @@ input[type="range"]::-moz-range-thumb:active {
   #print-mount {
     display: block !important;
     width: 210mm !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     visibility: visible !important;
   }
@@ -101,12 +105,14 @@ input[type="range"]::-moz-range-thumb:active {
   .print-page-wrapper {
     display: block !important;
     width: 210mm !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
+    box-sizing: border-box !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
 
+  /* Page break ONLY between multiple pages; never on or after the last page! */
   .print-page-wrapper:not(:last-child) {
     page-break-after: always !important;
     break-after: page !important;
@@ -123,13 +129,11 @@ input[type="range"]::-moz-range-thumb:active {
     flex-direction: column !important;
     justify-content: space-between !important;
     width: 210mm !important;
-    min-width: 210mm !important;
     max-width: 210mm !important;
-    height: 297mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
+    height: 285mm !important;
+    max-height: 285mm !important;
     box-sizing: border-box !important;
-    padding: 6mm 12mm 5mm 12mm !important;
+    padding: 4mm 12mm 4mm 12mm !important;
     margin: 0 auto !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
@@ -139,16 +143,7 @@ input[type="range"]::-moz-range-thumb:active {
     overflow: hidden !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-  }
-
-  .print-container:not(:last-child) {
-    page-break-after: always !important;
-    break-after: page !important;
-  }
-
-  .print-container:last-child {
     page-break-after: auto !important;
     break-after: auto !important;
-    margin-bottom: 0 !important;
   }
 }
