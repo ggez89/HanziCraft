@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { WorksheetSettings, StrokeStyle, getRowsPerPage } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 import {
   PenLine,
   FileText,
@@ -33,13 +34,6 @@ interface ControlsProps {
   onOpenCharacterLibrary?: () => void;
 }
 
-const PRESETS = [
-  { name: '1–10', text: '一二三四五六七八九十' },
-  { name: 'Greetings', text: '你好谢谢再见朋友大家欢迎' },
-  { name: 'Nature', text: '日月水火山石田土风雨天' },
-  { name: 'Study', text: '看读书写学习字文听' },
-];
-
 const SpeechBubbleIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
   <svg
     viewBox="0 0 24 24"
@@ -69,8 +63,16 @@ export const Controls: React.FC<ControlsProps> = ({
   pdfStatus = '',
   onOpenCharacterLibrary,
 }) => {
+  const { t, formatText } = useLanguage();
   const [outputSettingsOpen, setOutputSettingsOpen] = useState(false);
   const [exceededLimit, setExceededLimit] = useState(false);
+
+  const presets = [
+    { name: '1–10', text: '一二三四五六七八九十' },
+    { name: t.presetGreetings, text: '你好谢谢再见朋友大家欢迎' },
+    { name: t.presetNature, text: '日月水火山石田土风雨天' },
+    { name: t.presetStudy, text: '看读书写学习字文听' },
+  ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
@@ -105,18 +107,18 @@ export const Controls: React.FC<ControlsProps> = ({
 
   // Helper for size description
   const getSizeLabel = (mm: number) => {
-    if (mm === 14) return `14 mm · Compact`;
-    if (mm === 16) return `16 mm · Small`;
-    if (mm === 18) return `18 mm · Standard`;
-    if (mm === 20) return `20 mm · Medium-Large`;
-    if (mm === 22) return `22 mm · Large`;
-    if (mm === 24) return `24 mm · Jumbo`;
+    if (mm === 14) return `14 mm · ${t.sizeCompact}`;
+    if (mm === 16) return `16 mm · ${t.sizeSmall}`;
+    if (mm === 18) return `18 mm · ${t.sizeStandard}`;
+    if (mm === 20) return `20 mm · ${t.sizeMediumLarge}`;
+    if (mm === 22) return `22 mm · ${t.sizeLarge}`;
+    if (mm === 24) return `24 mm · ${t.sizeJumbo}`;
     return `${mm} mm`;
   };
 
   // Calculate practice square breakdown
   const rawSize = settings.characterSizeMm || 18;
-  const totalSlots = rawSize === 18 ? 10 : Math.max(5, Math.floor(186 / rawSize));
+  const totalSlots = rawSize === 18 ? 10 : Math.max(5, Math.floor(190 / rawSize));
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
   const blankSlots = practiceSlots - faintTraceSlots;
@@ -127,17 +129,17 @@ export const Controls: React.FC<ControlsProps> = ({
       {/* WORKSHEET TITLE */}
       <div>
         <label className="block text-xs font-bold text-stone-700 tracking-wider uppercase mb-2">
-          Worksheet Title
+          {t.worksheetTitleLabel}
         </label>
         <input
           type="text"
           value={settings.title}
           onChange={(e) => updateSetting('title', e.target.value)}
-          placeholder="基础汉字书写练习"
+          placeholder={t.worksheetTitlePlaceholder}
           className="w-full px-3.5 py-2.5 text-stone-900 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white shadow-2xs font-medium"
         />
         <p className="text-xs text-stone-400 mt-1.5">
-          Centered at the top of each printed page
+          {t.worksheetTitleHint}
         </p>
       </div>
 
@@ -145,10 +147,10 @@ export const Controls: React.FC<ControlsProps> = ({
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-xs font-bold text-stone-700 tracking-wider uppercase">
-            Characters to Practice
+            {t.charactersLabel}
           </label>
           <span className="text-xs text-stone-500 font-medium">
-            {charCount} {charCount === 1 ? 'char' : 'chars'} · {pageCount} {pageCount === 1 ? 'page' : 'pages'}
+            {charCount} {charCount === 1 ? t.charUnitSingular : t.charsUnit} · {pageCount} {pageCount === 1 ? t.pageUnitSingular : t.pagesUnit}
           </span>
         </div>
         <textarea
@@ -156,7 +158,7 @@ export const Controls: React.FC<ControlsProps> = ({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           maxLength={100}
-          placeholder="一二三四五六七八九十"
+          placeholder={t.charactersPlaceholder}
           rows={3}
           className="w-full px-3.5 py-2.5 text-stone-900 text-base border border-stone-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white shadow-2xs font-heiti font-normal resize-none leading-relaxed"
         />
@@ -165,7 +167,7 @@ export const Controls: React.FC<ControlsProps> = ({
         {exceededLimit && (
           <div className="flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mt-2">
             <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
-            <span>Maximum limit of 100 characters reached. Extra characters were omitted.</span>
+            <span>{t.charLimitWarning}</span>
           </div>
         )}
 
@@ -183,15 +185,15 @@ export const Controls: React.FC<ControlsProps> = ({
                 </div>
                 <div className="text-left truncate">
                   <div className="text-xs font-bold tracking-wide">
-                    Browse 100 Themed Character Sets
+                    {t.browseTopicsBtn}
                   </div>
                   <div className="text-[10px] text-white/80 font-normal">
-                    10 topics · Numbers, Animals, Nature, Food...
+                    {t.browseTopicsSub}
                   </div>
                 </div>
               </div>
               <span className="text-[11px] font-semibold bg-white/20 group-hover:bg-white/30 text-white px-2 py-0.5 rounded-full transition-colors flex items-center gap-0.5 shrink-0 ml-2">
-                Explore <ChevronRight className="w-3 h-3" />
+                {t.exploreBtn} <ChevronRight className="w-3 h-3" />
               </span>
             </button>
           )}
@@ -199,9 +201,9 @@ export const Controls: React.FC<ControlsProps> = ({
           {/* Quick Presets */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider mr-1">
-              Quick:
+              {t.quickPresetsLabel}
             </span>
-            {PRESETS.map((p) => (
+            {presets.map((p) => (
               <button
                 key={p.name}
                 type="button"
@@ -226,7 +228,7 @@ export const Controls: React.FC<ControlsProps> = ({
               onChange={(e) => setDeduplicate(e.target.checked)}
               className="w-4 h-4 rounded text-blue-600 border-stone-300 focus:ring-blue-500 cursor-pointer"
             />
-            <span>Remove duplicate characters</span>
+            <span>{t.deduplicateLabel}</span>
           </label>
         </div>
       </div>
@@ -235,7 +237,7 @@ export const Controls: React.FC<ControlsProps> = ({
       <div className="border border-stone-200 rounded-2xl p-4 bg-white shadow-2xs">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-bold text-stone-700 tracking-wider uppercase">
-            Character Size
+            {t.charSizeLabel}
           </span>
           <div className="flex items-center gap-1.5">
             <button
@@ -279,14 +281,19 @@ export const Controls: React.FC<ControlsProps> = ({
         </div>
 
         <div className="flex justify-between text-[11px] text-stone-400 mt-2 font-medium">
-          <span>Compact (14 mm)</span>
-          <span className="text-stone-600 font-semibold">Standard (18 mm)</span>
-          <span>Jumbo (24 mm)</span>
+          <span>{t.sizeCompact} (14 mm)</span>
+          <span className="text-stone-600 font-semibold">{t.sizeStandard} (18 mm)</span>
+          <span>{t.sizeJumbo} (24 mm)</span>
         </div>
 
         <p className="text-xs text-stone-500 mt-3 leading-relaxed">
-          Fits 1 reference + {practiceSlots} practice squares per row ({faintTraceSlots} faint trace + {blankSlots} blank) · <span className="font-semibold text-stone-700">{rowsPerPage} rows per page</span>.
-          {pageCount > 1 ? ` Characters spill cleanly across ${pageCount} pages with blank practice grids completing each page.` : ''}
+          {formatText(t.sizeHelpText, {
+            practice: practiceSlots,
+            trace: faintTraceSlots,
+            blank: blankSlots,
+            rows: rowsPerPage,
+          })}
+          {pageCount > 1 ? formatText(t.sizeSpillText, { pages: pageCount }) : ''}
         </p>
       </div>
 
@@ -294,7 +301,7 @@ export const Controls: React.FC<ControlsProps> = ({
       <div className="border border-stone-200 rounded-2xl p-4 bg-white shadow-2xs">
         <div className="mb-3">
           <span className="text-xs font-bold text-stone-700 tracking-wider uppercase">
-            Font & Stroke Style
+            {t.fontStyleLabel}
           </span>
         </div>
 
@@ -312,10 +319,10 @@ export const Controls: React.FC<ControlsProps> = ({
             <div className={`text-xl font-bold font-heiti mb-1 ${
               settings.strokeStyle === 'heiti' ? 'text-red-600' : 'text-stone-800'
             }`}>
-              永 · 黑体
+              {t.sansSerifTitle}
             </div>
             <div className="text-xs text-stone-600 font-medium">
-              Sans-Serif (Modern)
+              {t.sansSerifDesc}
             </div>
           </button>
 
@@ -332,23 +339,23 @@ export const Controls: React.FC<ControlsProps> = ({
             <div className={`text-xl font-bold font-kaiti mb-1 ${
               settings.strokeStyle === 'kaiti' ? 'text-red-600' : 'text-stone-800'
             }`}>
-              永 · 楷体
+              {t.brushTitle}
             </div>
             <div className="text-xs text-stone-600 font-medium">
-              Brush / Calligraphy
+              {t.brushDesc}
             </div>
           </button>
         </div>
 
         <p className="text-xs text-stone-500 mt-3 leading-relaxed">
-          Switches character font and stroke order between clean sans-serif and traditional brushwork for the entire page and PDF.
+          {t.fontStyleHint}
         </p>
       </div>
 
       {/* WORKSHEET LAYOUT OPTIONS */}
       <div className="space-y-3">
         <label className="block text-xs font-bold text-stone-700 tracking-wider uppercase">
-          Worksheet Layout Options
+          {t.layoutOptionsLabel}
         </label>
 
         {/* 1. Faint Trace Outlines */}
@@ -356,8 +363,8 @@ export const Controls: React.FC<ControlsProps> = ({
           <div className="flex items-start gap-3">
             <PenLine className="w-4 h-4 text-stone-500 mt-0.5 shrink-0" />
             <div>
-              <div className="text-sm font-semibold text-stone-800">Faint Trace Outlines</div>
-              <div className="text-xs text-stone-500">Faint character guides for guided muscle memory</div>
+              <div className="text-sm font-semibold text-stone-800">{t.faintTraceTitle}</div>
+              <div className="text-xs text-stone-500">{t.faintTraceDesc}</div>
             </div>
           </div>
           <input
@@ -373,8 +380,8 @@ export const Controls: React.FC<ControlsProps> = ({
           <div className="flex items-start gap-3">
             <FileText className="w-4 h-4 text-stone-500 mt-0.5 shrink-0" />
             <div>
-              <div className="text-sm font-semibold text-stone-800">Stroke Order Breakdown</div>
-              <div className="text-xs text-stone-500">Visual progressive stroke steps above row</div>
+              <div className="text-sm font-semibold text-stone-800">{t.strokeBreakdownTitle}</div>
+              <div className="text-xs text-stone-500">{t.strokeBreakdownDesc}</div>
             </div>
           </div>
           <input
@@ -390,8 +397,8 @@ export const Controls: React.FC<ControlsProps> = ({
           <div className="flex items-start gap-3">
             <SpeechBubbleIcon className="w-4 h-4 text-stone-500 mt-0.5 shrink-0" />
             <div>
-              <div className="text-sm font-semibold text-stone-800">Pīnyīn Pronunciation</div>
-              <div className="text-xs text-stone-500">Tone-marked pinyin for each character</div>
+              <div className="text-sm font-semibold text-stone-800">{t.pinyinTitle}</div>
+              <div className="text-xs text-stone-500">{t.pinyinDesc}</div>
             </div>
           </div>
           <input
@@ -407,8 +414,8 @@ export const Controls: React.FC<ControlsProps> = ({
           <div className="flex items-start gap-3">
             <LayoutGrid className="w-4 h-4 text-stone-500 mt-0.5 shrink-0" />
             <div>
-              <div className="text-sm font-semibold text-stone-800">Tianzige Practice Gridlines</div>
-              <div className="text-xs text-stone-500">Cross and diagonal balance guidelines</div>
+              <div className="text-sm font-semibold text-stone-800">{t.tianzigeTitle}</div>
+              <div className="text-xs text-stone-500">{t.tianzigeDesc}</div>
             </div>
           </div>
           <input
@@ -424,8 +431,8 @@ export const Controls: React.FC<ControlsProps> = ({
           <div className="flex items-start gap-3">
             <User className="w-4 h-4 text-stone-500 mt-0.5 shrink-0" />
             <div>
-              <div className="text-sm font-semibold text-stone-800">Header Student Name Field</div>
-              <div className="text-xs text-stone-500">Prints &quot;姓名：______&quot; at the top</div>
+              <div className="text-sm font-semibold text-stone-800">{t.studentNameTitle}</div>
+              <div className="text-xs text-stone-500">{t.studentNameDesc}</div>
             </div>
           </div>
           <input
@@ -449,9 +456,9 @@ export const Controls: React.FC<ControlsProps> = ({
               ) : (
                 <ChevronRight className="w-4 h-4 text-stone-500" />
               )}
-              Output Settings
+              {t.outputSettingsTitle}
             </span>
-            <span className="text-stone-400 font-normal">A4 · Portrait</span>
+            <span className="text-stone-400 font-normal">{t.letterPortrait}</span>
           </button>
           {outputSettingsOpen && (
             <div className="p-3.5 pt-0 border-t border-stone-100 text-xs text-stone-600 space-y-2 mt-2">
@@ -462,10 +469,10 @@ export const Controls: React.FC<ControlsProps> = ({
                   onChange={(e) => updateSetting('headerDate', e.target.checked)}
                   className="rounded text-blue-600"
                 />
-                Include date field (&quot;日期：______&quot;)
+                {t.dateFieldTitle}
               </label>
               <p className="text-[11px] text-stone-400">
-                All pages are formatted for standard desktop A4 printers with crisp 10mm margins.
+                {t.outputSettingsHint}
               </p>
             </div>
           )}
@@ -486,7 +493,7 @@ export const Controls: React.FC<ControlsProps> = ({
           ) : (
             <Download className="w-4 h-4 stroke-[2.5]" />
           )}
-          <span>{isGeneratingPdf ? (pdfStatus || 'Generating PDF...') : 'Download PDF'}</span>
+          <span>{isGeneratingPdf ? (pdfStatus || t.savePdfBtn) : t.savePdfBtn}</span>
         </button>
 
         {/* Secondary: Native Print dialog */}
@@ -496,7 +503,7 @@ export const Controls: React.FC<ControlsProps> = ({
           className="w-full py-2.5 px-4 bg-stone-100 hover:bg-stone-200 active:bg-stone-300 text-stone-700 font-semibold text-xs rounded-xl border border-stone-200/80 transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <Printer className="w-3.5 h-3.5 text-stone-600" />
-          <span>Print Directly</span>
+          <span>{t.printDirectBtn}</span>
         </button>
       </div>
     </div>

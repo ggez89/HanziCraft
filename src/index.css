@@ -91,7 +91,7 @@
   }
 
   @page {
-    size: 210mm 297mm;
+    size: 8.5in 11in;
     margin: 0;
   }
 
@@ -106,7 +106,7 @@
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 210mm !important;
+    width: 8.5in !important;
     height: auto !important;
     overflow: visible !important;
   }
@@ -117,8 +117,8 @@
     padding: 0 !important;
     min-height: 0 !important;
     height: auto !important;
-    width: 210mm !important;
-    max-width: 210mm !important;
+    width: 8.5in !important;
+    max-width: 8.5in !important;
     background: #ffffff !important;
     background-color: #ffffff !important;
     box-shadow: none !important;
@@ -137,7 +137,7 @@
   /* Dedicated Print Container is unhidden and cleanly displayed */
   #print-mount {
     display: block !important;
-    width: 210mm !important;
+    width: 8.5in !important;
     margin: 0 auto !important;
     padding: 0 !important;
     visibility: visible !important;
@@ -145,8 +145,8 @@
 
   .print-page-wrapper {
     display: block !important;
-    width: 210mm !important;
-    height: 297mm !important;
+    width: 8.5in !important;
+    height: 11in !important;
     margin: 0 auto !important;
     padding: 0 !important;
     box-sizing: border-box !important;
@@ -171,13 +171,13 @@
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
-    width: 210mm !important;
+    width: 8.5in !important;
     max-width: 100% !important;
-    height: 297mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
+    height: 11in !important;
+    min-height: 11in !important;
+    max-height: 11in !important;
     box-sizing: border-box !important;
-    padding: 6mm 10mm 4mm 10mm !important;
+    padding: 5mm 12mm 4mm 12mm !important;
     margin: 0 auto !important;
     background: #ffffff !important;
     background-color: #ffffff !important;

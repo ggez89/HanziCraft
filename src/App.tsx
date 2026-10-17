@@ -10,6 +10,7 @@ import { CharacterLibraryModal } from './components/CharacterLibraryModal';
 import { CharacterSet, ScriptType } from './data/characterLibrary';
 import { Eye, Printer, ChevronLeft, ChevronRight, Sliders } from 'lucide-react';
 import { printWorksheet, downloadPdfDocument } from './utils/pdfExport';
+import { useLanguage } from './context/LanguageContext';
 
 const DEFAULT_SETTINGS: WorksheetSettings = {
   title: '基础汉字书写练习',
@@ -24,6 +25,7 @@ const DEFAULT_SETTINGS: WorksheetSettings = {
 };
 
 export function App() {
+  const { t, formatText, language } = useLanguage();
   const [inputText, setInputText] = useState<string>('一二三四五六七八九十');
   const [deduplicate, setDeduplicate] = useState<boolean>(true);
   const [settings, setSettings] = useState<WorksheetSettings>(DEFAULT_SETTINGS);
@@ -34,6 +36,15 @@ export function App() {
   const [isLibraryOpen, setIsLibraryOpen] = useState<boolean>(false);
   const [currentScript, setCurrentScript] = useState<ScriptType>('simplified');
 
+  // Sync script type with active language
+  useEffect(() => {
+    if (language === 'zh-Hant') {
+      setCurrentScript('traditional');
+    } else {
+      setCurrentScript('simplified');
+    }
+  }, [language]);
+
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState<number>(1);
 
@@ -41,9 +52,9 @@ export function App() {
     const updateScale = () => {
       if (!previewContainerRef.current) return;
       const containerWidth = previewContainerRef.current.clientWidth;
-      const a4WidthPx = 794; // 210mm in standard CSS 96 DPI
-      if (containerWidth > 0 && containerWidth < a4WidthPx) {
-        const targetScale = Math.min(1, (containerWidth - 8) / a4WidthPx);
+      const letterWidthPx = 816; // 8.5in in standard CSS 96 DPI
+      if (containerWidth > 0 && containerWidth < letterWidthPx) {
+        const targetScale = Math.min(1, (containerWidth - 8) / letterWidthPx);
         setPreviewScale(Math.max(0.3, targetScale));
       } else {
         setPreviewScale(1);
@@ -279,7 +290,7 @@ export function App() {
               </button>
             </div>
 
-            {/* Render A4 Pages - Auto-scaled to container width on mobile & tablet without scrolling */}
+            {/* Render Letter Pages - Auto-scaled to container width on mobile & tablet without scrolling */}
             <div
               ref={previewContainerRef}
               className="w-full flex flex-col items-center overflow-x-hidden"
@@ -287,8 +298,8 @@ export function App() {
               {/* Scaled viewport container */}
               <div
                 style={{
-                  width: previewScale < 1 ? `${Math.round(794 * previewScale)}px` : '794px',
-                  height: previewScale < 1 ? `${Math.round(1123 * previewScale)}px` : '1123px',
+                  width: previewScale < 1 ? `${Math.round(816 * previewScale)}px` : '816px',
+                  height: previewScale < 1 ? `${Math.round(1056 * previewScale)}px` : '1056px',
                 }}
                 className="relative flex justify-center print:!w-auto print:!h-auto print:!m-0"
               >
@@ -296,8 +307,8 @@ export function App() {
                   style={{
                     transform: previewScale < 1 ? `scale(${previewScale})` : 'none',
                     transformOrigin: 'top center',
-                    width: '210mm',
-                    height: '297mm',
+                    width: '8.5in',
+                    height: '11in',
                   }}
                   className="print:!transform-none print:!w-auto print:!min-h-0"
                 >
@@ -348,8 +359,8 @@ export function App() {
           </div>
         </div>
 
-        {/* Dedicated Pristine Print Mount: unscaled full A4 pages for Native Print & PDF Export */}
-        <div id="print-mount" className="hidden print:block w-[210mm]">
+        {/* Dedicated Pristine Print Mount: unscaled full Letter pages for Native Print & PDF Export */}
+        <div id="print-mount" className="hidden print:block w-[8.5in]">
           {pages.map((pageChars, idx) => (
             <div key={`print-page-${idx}`} className="print-page-wrapper">
               <WorksheetPage

@@ -42,13 +42,14 @@ export async function downloadPdfDocument(
 
   onProgress?.('Preparing pages for PDF...');
 
-  // Temporarily stage printMount off-screen so modern-screenshot computes
-  // full CSS layout, fonts, and SVGs at 100% true A4 scale (210mm x 297mm)
+  // Temporarily stage printMount far off-screen so modern-screenshot computes
+  // full CSS layout, fonts, and SVGs at 100% true Letter scale (8.5in x 11in)
+  // without any visual bleed or ghosting on screen.
   const prevCssText = printMount ? printMount.style.cssText : '';
   if (printMount) {
     printMount.style.position = 'fixed';
-    printMount.style.left = '0';
-    printMount.style.top = '0';
+    printMount.style.left = '-100000px';
+    printMount.style.top = '-100000px';
     printMount.style.zIndex = '-9999';
     printMount.style.display = 'block';
     printMount.style.visibility = 'visible';
@@ -59,8 +60,8 @@ export async function downloadPdfDocument(
   try {
     const pdf = new jsPDF({
       orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
+      unit: 'in',
+      format: 'letter',
       compress: true,
     });
 
@@ -75,14 +76,16 @@ export async function downloadPdfDocument(
         scale: 2.5,
         backgroundColor: '#ffffff',
         quality: 0.95,
+        width: 816,
+        height: 1056,
       });
 
       if (i > 0) {
-        pdf.addPage('a4', 'portrait');
+        pdf.addPage('letter', 'portrait');
       }
 
-      // Exact A4 dimensions: 210mm x 297mm
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      // Exact US Letter dimensions: 8.5in x 11in
+      pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
     }
 
     onProgress?.('Saving PDF file...');

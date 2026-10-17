@@ -21,11 +21,11 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   totalPages = 1,
   onCharacterClick,
 }) => {
-  // Available printable width (~186mm)
-  const availableWidthMm = 186;
+  // Available printable width on US Letter 8.5" (~190mm)
+  const availableWidthMm = 190;
   const rawSize = settings.characterSizeMm || 18;
   
-  // Total frames per row dynamically scales so it never overflows (at 18mm: 10 frames = 1 model + 9 practice)
+  // Total frames per row dynamically scales so it never overflows (at standard 18mm: 10 frames = 1 model + 9 practice)
   const totalSlots = rawSize === 18 ? 10 : Math.max(5, Math.floor(availableWidthMm / rawSize));
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
@@ -38,22 +38,21 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const infoMarginBottomPx = 1;
   const infoGapPx = Math.max(3, Math.round(5 * sizeRatio));
 
-  // Rows capacity dynamically calculated per character size so paper size is strictly constant A4 (297mm)
+  // Rows capacity dynamically calculated per character size so paper size is strictly constant Letter (11in)
   const maxRowsPerPage = getRowsPerPage(rawSize);
   
   // Fill remaining capacity with empty practice grids so rows have normal spacing and no gaping empty gaps
   const emptyRowsCount = Math.max(0, maxRowsPerPage - characters.length);
 
-  // Exact pixel size per square fitted across available width (~65px at standard 18mm)
-  // Maps each discrete slider step (14, 16, 18, 20, 22, 24 mm) to a distinct square size
-  // that fits the page without vertical clipping
+  // Exact pixel size per square fitted across Letter width (~68px at standard 18mm)
+  // Perfectly balanced ~680px grid width centered on the 816px (8.5") page with equal margins
   const cellPxMap: Record<number, number> = {
-    14: 50,
-    16: 59,
-    18: 65,
-    20: 72,
-    22: 81,
-    24: 93,
+    14: 54,
+    16: 62,
+    18: 68,
+    20: 76,
+    22: 85,
+    24: 97,
   };
   const cellPx = cellPxMap[rawSize] || Math.floor((availableWidthMm / totalSlots) * 3.52);
 
@@ -61,13 +60,13 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
 
   return (
-    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto px-5 pt-5 pb-3 mb-0 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] h-[297mm] max-h-[297mm] print:w-[210mm] print:h-[297mm] print:min-h-[297mm] print:max-h-[297mm] box-border relative flex flex-col justify-between overflow-hidden select-none">
+    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto px-6 pt-5 pb-3 mb-0 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[8.5in] h-[11in] max-h-[11in] print:w-[8.5in] print:h-[11in] print:min-h-[11in] print:max-h-[11in] box-border relative flex flex-col justify-between overflow-hidden select-none">
       <div className="flex-1 min-h-0 flex flex-col justify-between">
         {/* Page Header: Left-aligned Logo + Worksheet Title, with Name on right */}
-        <div className="mb-1 shrink-0">
-          <div className="flex items-center justify-between mb-1 px-0.5">
+        <div className="mb-1 shrink-0 w-full px-1">
+          <div className="flex items-center justify-between mb-1.5 px-0.5">
             {/* Top Left: Logo + Worksheet Title (left-aligned together) */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <HanziLogo size={22} />
               <h1 className={`text-sm sm:text-base font-bold text-stone-900 tracking-wide ${titleFontClass}`}>
                 {settings.title || '基础汉字书写练习'}
@@ -88,12 +87,12 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
           <div className="border-b-2 border-stone-900 w-full" />
         </div>
 
-        {/* Character Rows evenly and beautifully distributed down to the footer */}
-        <div className="flex-1 min-h-0 flex flex-col justify-between py-1">
+        {/* Character Rows evenly and beautifully distributed down to the footer, centered horizontally */}
+        <div className="flex-1 min-h-0 flex flex-col justify-between py-1 items-center w-full">
           {/* 1. Rows with practice characters */}
           {characters.map((item) => {
             return (
-              <div key={item.id} className="flex flex-col py-0 break-inside-avoid print:break-inside-avoid">
+              <div key={item.id} className="flex flex-col py-0 w-fit break-inside-avoid print:break-inside-avoid">
                 {/* Top info line: Pinyin on left in black, progressive strokes right next to it, scaled proportionally */}
                 {(settings.pinyin || settings.strokeOrderBreakdown) && (
                   <div
@@ -162,7 +161,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
           {/* 2. Empty square grid rows for remaining capacity on the page for practice */}
           {Array.from({ length: emptyRowsCount }).map((_, emptyIdx) => {
             return (
-              <div key={`empty-row-${emptyIdx}`} className="flex flex-col py-0 opacity-80 break-inside-avoid print:break-inside-avoid">
+              <div key={`empty-row-${emptyIdx}`} className="flex flex-col py-0 opacity-80 w-fit break-inside-avoid print:break-inside-avoid">
                 {/* Top spacer matching proportional pinyin row height */}
                 {(settings.pinyin || settings.strokeOrderBreakdown) && (
                   <div
@@ -192,7 +191,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
       </div>
 
       {/* Page Footer matching Mathletics */}
-      <footer className="border-t border-stone-200/90 pt-2 mt-auto flex items-center justify-between text-gray-400 print:text-gray-600 shrink-0">
+      <footer className="border-t border-stone-200/90 pt-2 mt-auto flex items-center justify-between text-gray-400 print:text-gray-600 shrink-0 w-full px-1">
         <a
           href="https://hanzi.patrickyou.ng"
           target="_blank"
