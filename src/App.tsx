@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { CharacterItem, WorksheetSettings } from './types';
+import { CharacterItem, WorksheetSettings, getRowsPerPage } from './types';
 import { extractChineseChars, getCharPinyin } from './utils/pinyinService';
 import { fetchStrokeData } from './utils/strokeService';
 import { Navbar } from './components/Navbar';
@@ -97,8 +97,11 @@ export function App() {
     };
   }, [inputText, deduplicate]);
 
-  // Exactly 10 characters per page so the 1-10 preset fits on a single page
-  const itemsPerPage = 10;
+// Dynamic capacity per page based on character size so the paper size remains strictly fixed A4
+  // Any extra characters cleanly spill over to subsequent pages, with empty practice grids filling the remainder
+  const itemsPerPage = useMemo(() => {
+    return getRowsPerPage(settings.characterSizeMm);
+  }, [settings.characterSizeMm]);
 
   const pages = useMemo(() => {
     const result: CharacterItem[][] = [];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CharacterItem, WorksheetSettings } from '../types';
+import { CharacterItem, WorksheetSettings, getRowsPerPage } from '../types';
 import { GridCell } from './GridCell';
 import { StrokeOrderDiagram } from './StrokeOrderDiagram';
 import { HanziLogo } from './HanziLogo';
@@ -30,32 +30,38 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
 
-  // Dynamic scaling proportional to the character size slider (14mm to 24mm, base 18mm)
+  // Proportional scaling for pinyin and stroke breakdown diagrams
   const sizeRatio = rawSize / 18;
   const pinyinFontSizePx = Math.max(9, Math.round(11 * sizeRatio));
-  const strokeOrderSizePx = Math.max(12, Math.round(15 * sizeRatio));
+  const strokeOrderSizePx = Math.max(12, Math.round(14 * sizeRatio));
   const infoLineHeightPx = Math.max(strokeOrderSizePx, pinyinFontSizePx + 2);
-  const infoMarginBottomPx = Math.max(1, Math.round(1.5 * sizeRatio));
-  const infoGapPx = Math.max(4, Math.round(6 * sizeRatio));
+  const infoMarginBottomPx = 1;
+  const infoGapPx = Math.max(3, Math.round(5 * sizeRatio));
 
-  // Exactly 10 rows capacity per page so standard 1-10 practice sheets fit on 1 page without vertical overflow
-  const maxRowsPerPage = 10;
+  // Rows capacity dynamically calculated per character size so paper size is strictly constant A4 (297mm)
+  const maxRowsPerPage = getRowsPerPage(rawSize);
   
   // Fill remaining capacity with empty practice grids so rows have normal spacing and no gaping empty gaps
   const emptyRowsCount = Math.max(0, maxRowsPerPage - characters.length);
 
-  // Exact pixel size per square fitted across the available width and guaranteed to fit 10 rows vertically
-  const maxCellHeight = Math.floor(
-    (960 / maxRowsPerPage) -
-      (settings.pinyin || settings.strokeOrderBreakdown ? infoLineHeightPx + infoMarginBottomPx : 0)
-  );
-  const cellPx = Math.min(Math.floor((availableWidthMm / totalSlots) * 3.52), maxCellHeight);
+  // Exact pixel size per square fitted across available width (~65px at standard 18mm)
+  // Maps each discrete slider step (14, 16, 18, 20, 22, 24 mm) to a distinct square size
+  // that fits the page without vertical clipping
+  const cellPxMap: Record<number, number> = {
+    14: 50,
+    16: 59,
+    18: 65,
+    20: 72,
+    22: 81,
+    24: 93,
+  };
+  const cellPx = cellPxMap[rawSize] || Math.floor((availableWidthMm / totalSlots) * 3.52);
 
   // Title font dynamically matches selected style
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
 
   return (
-    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto px-5 pt-5 pb-3 mb-8 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] h-[297mm] max-h-[297mm] print:w-[210mm] print:h-[297mm] print:min-h-[297mm] print:max-h-[297mm] box-border relative flex flex-col justify-between overflow-hidden select-none">
+    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto px-5 pt-5 pb-3 mb-0 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[210mm] h-[297mm] max-h-[297mm] print:w-[210mm] print:h-[297mm] print:min-h-[297mm] print:max-h-[297mm] box-border relative flex flex-col justify-between overflow-hidden select-none">
       <div className="flex-1 min-h-0 flex flex-col justify-between">
         {/* Page Header: Left-aligned Logo + Worksheet Title, with Name on right */}
         <div className="mb-1 shrink-0">

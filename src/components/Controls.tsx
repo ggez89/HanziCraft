@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { WorksheetSettings, StrokeStyle } from '../types';
+import { WorksheetSettings, StrokeStyle, getRowsPerPage } from '../types';
 import {
   PenLine,
   FileText,
@@ -12,6 +12,8 @@ import {
   ChevronDown,
   Loader2,
   AlertCircle,
+  Minus,
+  Plus,
 } from 'lucide-react';
 import { printWorksheet } from '../utils/pdfExport';
 
@@ -115,6 +117,7 @@ export const Controls: React.FC<ControlsProps> = ({
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
   const blankSlots = practiceSlots - faintTraceSlots;
+  const rowsPerPage = getRowsPerPage(rawSize);
 
   return (
     <div className="no-print space-y-6">
@@ -201,23 +204,46 @@ export const Controls: React.FC<ControlsProps> = ({
           <span className="text-xs font-bold text-stone-700 tracking-wider uppercase">
             Character Size
           </span>
-          <span className="text-xs font-bold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
-            {getSizeLabel(settings.characterSizeMm)}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => updateSetting('characterSizeMm', Math.max(14, settings.characterSizeMm - 2))}
+              disabled={settings.characterSizeMm <= 14}
+              className="w-6 h-6 flex items-center justify-center rounded-md border border-stone-200 bg-stone-50 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-stone-700"
+              title="Decrease size"
+              aria-label="Decrease size"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-xs font-bold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
+              {getSizeLabel(settings.characterSizeMm)}
+            </span>
+            <button
+              type="button"
+              onClick={() => updateSetting('characterSizeMm', Math.min(24, settings.characterSizeMm + 2))}
+              disabled={settings.characterSizeMm >= 24}
+              className="w-6 h-6 flex items-center justify-center rounded-md border border-stone-200 bg-stone-50 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-stone-700"
+              title="Increase size"
+              aria-label="Increase size"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        <input
-          type="range"
-          min="14"
-          max="24"
-          step="2"
-          value={settings.characterSizeMm}
-          onInput={(e: React.FormEvent<HTMLInputElement>) =>
-            updateSetting('characterSizeMm', Number((e.target as HTMLInputElement).value))
-          }
-          onChange={(e) => updateSetting('characterSizeMm', Number(e.target.value))}
-          className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-ew-resize accent-red-600 focus:outline-none"
-        />
+        {/* Range Slider with generous touch target and smooth dragging */}
+        <div className="py-1">
+          <input
+            type="range"
+            min="14"
+            max="24"
+            step="2"
+            value={settings.characterSizeMm}
+            onChange={(e) => updateSetting('characterSizeMm', Number(e.target.value))}
+            className="range-slider"
+            aria-label="Character Size in mm"
+          />
+        </div>
 
         <div className="flex justify-between text-[11px] text-stone-400 mt-2 font-medium">
           <span>Compact (14 mm)</span>
@@ -226,7 +252,8 @@ export const Controls: React.FC<ControlsProps> = ({
         </div>
 
         <p className="text-xs text-stone-500 mt-3 leading-relaxed">
-          Automatically fits 1 reference + {practiceSlots} practice squares ({faintTraceSlots} faint trace + {blankSlots} blank) per row.
+          Fits 1 reference + {practiceSlots} practice squares per row ({faintTraceSlots} faint trace + {blankSlots} blank) · <span className="font-semibold text-stone-700">{rowsPerPage} rows per page</span>.
+          {pageCount > 1 ? ` Characters spill cleanly across ${pageCount} pages with blank practice grids completing each page.` : ''}
         </p>
       </div>
 
