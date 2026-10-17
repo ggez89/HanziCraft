@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Minus,
   Plus,
+  BookOpen,
 } from 'lucide-react';
 import { printWorksheet } from '../utils/pdfExport';
 
@@ -29,6 +30,7 @@ interface ControlsProps {
   onDownloadPdf: () => void;
   isGeneratingPdf?: boolean;
   pdfStatus?: string;
+  onOpenCharacterLibrary?: () => void;
 }
 
 const PRESETS = [
@@ -65,6 +67,7 @@ export const Controls: React.FC<ControlsProps> = ({
   onDownloadPdf,
   isGeneratingPdf = false,
   pdfStatus = '',
+  onOpenCharacterLibrary,
 }) => {
   const [outputSettingsOpen, setOutputSettingsOpen] = useState(false);
   const [exceededLimit, setExceededLimit] = useState(false);
@@ -166,22 +169,52 @@ export const Controls: React.FC<ControlsProps> = ({
           </div>
         )}
 
-        {/* Presets */}
-        <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-          <span className="text-xs text-stone-500 font-medium">Presets:</span>
-          {PRESETS.map((p) => (
+        {/* 100 Topics Character Library Trigger & Quick Presets */}
+        <div className="mt-3 space-y-2.5">
+          {onOpenCharacterLibrary && (
             <button
-              key={p.name}
               type="button"
-              onClick={() => {
-                setInputText(p.text);
-                setExceededLimit(false);
-              }}
-              className="text-xs px-2.5 py-1 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium border border-stone-200/80 transition-colors cursor-pointer"
+              onClick={onOpenCharacterLibrary}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl shadow-xs transition-all cursor-pointer group"
             >
-              {p.name}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div className="text-left truncate">
+                  <div className="text-xs font-bold tracking-wide">
+                    Browse 100 Themed Character Sets
+                  </div>
+                  <div className="text-[10px] text-white/80 font-normal">
+                    10 topics · Numbers, Animals, Nature, Food...
+                  </div>
+                </div>
+              </div>
+              <span className="text-[11px] font-semibold bg-white/20 group-hover:bg-white/30 text-white px-2 py-0.5 rounded-full transition-colors flex items-center gap-0.5 shrink-0 ml-2">
+                Explore <ChevronRight className="w-3 h-3" />
+              </span>
             </button>
-          ))}
+          )}
+
+          {/* Quick Presets */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider mr-1">
+              Quick:
+            </span>
+            {PRESETS.map((p) => (
+              <button
+                key={p.name}
+                type="button"
+                onClick={() => {
+                  setInputText(p.text);
+                  setExceededLimit(false);
+                }}
+                className="text-xs px-2.5 py-1 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium border border-stone-200/80 transition-colors cursor-pointer"
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Duplicate toggle */}

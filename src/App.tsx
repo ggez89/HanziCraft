@@ -6,6 +6,8 @@ import { Navbar } from './components/Navbar';
 import { Controls } from './components/Controls';
 import { WorksheetPage } from './components/WorksheetPage';
 import { CharacterModal } from './components/CharacterModal';
+import { CharacterLibraryModal } from './components/CharacterLibraryModal';
+import { CharacterSet, ScriptType } from './data/characterLibrary';
 import { Eye, Printer, ChevronLeft, ChevronRight, Sliders } from 'lucide-react';
 import { printWorksheet, downloadPdfDocument } from './utils/pdfExport';
 
@@ -29,6 +31,8 @@ export function App() {
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterItem | null>(null);
   const [currentPageIndex, setCurrentPageIndex] = useState<number>(0);
   const [mobileTab, setMobileTab] = useState<'setup' | 'preview'>('setup');
+  const [isLibraryOpen, setIsLibraryOpen] = useState<boolean>(false);
+  const [currentScript, setCurrentScript] = useState<ScriptType>('simplified');
 
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState<number>(1);
@@ -138,6 +142,17 @@ export function App() {
     }
   }, [pages.length, currentPageIndex]);
 
+  const handleSelectCharacterSet = (set: CharacterSet, script: ScriptType) => {
+    const chars = script === 'traditional' ? set.charactersTrad : set.charactersSimp;
+    const title = script === 'traditional' ? set.subcategoryTrad : set.subcategorySimp;
+    setInputText(chars.join(''));
+    setSettings((prev) => ({
+      ...prev,
+      title: title,
+    }));
+    setIsLibraryOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-stone-100/60 flex flex-col font-sans">
       <Navbar />
@@ -195,6 +210,7 @@ export function App() {
               onDownloadPdf={handleDownloadPdf}
               isGeneratingPdf={isGeneratingPdf}
               pdfStatus={pdfStatus}
+              onOpenCharacterLibrary={() => setIsLibraryOpen(true)}
             />
 
             {/* Quick jump to Page View on mobile */}
@@ -355,6 +371,15 @@ export function App() {
           strokeStyle={settings.strokeStyle}
         />
       )}
+
+      {/* 100-Topic Character Library Tree Picker Modal */}
+      <CharacterLibraryModal
+        isOpen={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onSelectSet={handleSelectCharacterSet}
+        currentScript={currentScript}
+        onScriptChange={setCurrentScript}
+      />
     </div>
   );
 }
