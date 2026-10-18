@@ -105,24 +105,47 @@ export const Controls: React.FC<ControlsProps> = ({
     setSettings((prev) => ({ ...prev, [key]: val }));
   };
 
+  // Available character sizes in mm
+  const AVAILABLE_SIZES = [14, 16, 18, 20, 22, 24, 28, 32] as const;
+
   // Helper for size description
   const getSizeLabel = (mm: number) => {
-    if (mm === 14) return `14 mm · ${t.sizeCompact}`;
-    if (mm === 16) return `16 mm · ${t.sizeSmall}`;
-    if (mm === 18) return `18 mm · ${t.sizeStandard}`;
-    if (mm === 20) return `20 mm · ${t.sizeMediumLarge}`;
-    if (mm === 22) return `22 mm · ${t.sizeLarge}`;
-    if (mm === 24) return `24 mm · ${t.sizeJumbo}`;
+    if (mm === 14) return t.sizeCompact;
+    if (mm === 16) return t.sizeSmall;
+    if (mm === 18) return t.sizeStandard;
+    if (mm === 20) return t.sizeMediumLarge;
+    if (mm === 22) return t.sizeLarge;
+    if (mm === 24) return t.sizeJumbo;
+    if (mm === 28) return t.sizeExtraJumbo;
+    if (mm === 32) return t.sizeGiant;
     return `${mm} mm`;
   };
 
   // Calculate practice square breakdown
   const rawSize = settings.characterSizeMm || 18;
-  const totalSlots = rawSize === 18 ? 10 : Math.max(5, Math.floor(190 / rawSize));
+  const totalSlots =
+    rawSize === 18 ? 10 :
+    rawSize === 28 ? 6 :
+    rawSize === 32 ? 5 :
+    Math.max(5, Math.floor(190 / rawSize));
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
   const blankSlots = practiceSlots - faintTraceSlots;
   const rowsPerPage = getRowsPerPage(rawSize);
+
+  // Current index in discrete size steps
+  const currentSizeIndex = (() => {
+    let closestIdx = 0;
+    let minDiff = Infinity;
+    AVAILABLE_SIZES.forEach((s, idx) => {
+      const diff = Math.abs(s - (settings.characterSizeMm || 18));
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIdx = idx;
+      }
+    });
+    return closestIdx;
+  })();
 
   return (
     <div className="no-print space-y-6">
@@ -235,29 +258,42 @@ export const Controls: React.FC<ControlsProps> = ({
 
       {/* CHARACTER SIZE CARD */}
       <div className="border border-stone-200 rounded-2xl p-4 bg-white shadow-2xs">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-bold text-stone-700 tracking-wider uppercase">
-            {t.charSizeLabel}
-          </span>
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="min-w-0">
+            <span className="text-xs font-bold text-stone-700 tracking-wider uppercase block truncate">
+              {t.charSizeLabel}
+            </span>
+            <span className="text-xs font-semibold text-red-600 block truncate mt-0.5">
+              {getSizeLabel(settings.characterSizeMm)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
-              onClick={() => updateSetting('characterSizeMm', Math.max(14, settings.characterSizeMm - 2))}
-              disabled={settings.characterSizeMm <= 14}
-              className="w-6 h-6 flex items-center justify-center rounded-md border border-stone-200 bg-stone-50 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-stone-700"
+              onClick={() => {
+                if (currentSizeIndex > 0) {
+                  updateSetting('characterSizeMm', AVAILABLE_SIZES[currentSizeIndex - 1]);
+                }
+              }}
+              disabled={currentSizeIndex <= 0}
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-stone-700 shadow-2xs transition-colors"
               title="Decrease size"
               aria-label="Decrease size"
             >
               <Minus className="w-3.5 h-3.5" />
             </button>
-            <span className="text-xs font-bold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
-              {getSizeLabel(settings.characterSizeMm)}
+            <span className="text-xs font-mono font-bold text-stone-800 bg-stone-100 px-2 py-1 rounded-lg border border-stone-200/80 min-w-[50px] text-center select-none">
+              {settings.characterSizeMm} mm
             </span>
             <button
               type="button"
-              onClick={() => updateSetting('characterSizeMm', Math.min(24, settings.characterSizeMm + 2))}
-              disabled={settings.characterSizeMm >= 24}
-              className="w-6 h-6 flex items-center justify-center rounded-md border border-stone-200 bg-stone-50 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-stone-700"
+              onClick={() => {
+                if (currentSizeIndex < AVAILABLE_SIZES.length - 1) {
+                  updateSetting('characterSizeMm', AVAILABLE_SIZES[currentSizeIndex + 1]);
+                }
+              }}
+              disabled={currentSizeIndex >= AVAILABLE_SIZES.length - 1}
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-stone-700 shadow-2xs transition-colors"
               title="Increase size"
               aria-label="Increase size"
             >
@@ -270,20 +306,14 @@ export const Controls: React.FC<ControlsProps> = ({
         <div className="py-1">
           <input
             type="range"
-            min="14"
-            max="24"
-            step="2"
-            value={settings.characterSizeMm}
-            onChange={(e) => updateSetting('characterSizeMm', Number(e.target.value))}
+            min={0}
+            max={AVAILABLE_SIZES.length - 1}
+            step={1}
+            value={currentSizeIndex}
+            onChange={(e) => updateSetting('characterSizeMm', AVAILABLE_SIZES[Number(e.target.value)])}
             className="range-slider"
-            aria-label="Character Size in mm"
+            aria-label="Character Size"
           />
-        </div>
-
-        <div className="flex justify-between text-[11px] text-stone-400 mt-2 font-medium">
-          <span>{t.sizeCompact} (14 mm)</span>
-          <span className="text-stone-600 font-semibold">{t.sizeStandard} (18 mm)</span>
-          <span>{t.sizeJumbo} (24 mm)</span>
         </div>
 
         <p className="text-xs text-stone-500 mt-3 leading-relaxed">

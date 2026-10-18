@@ -48,6 +48,8 @@ export interface TranslationDict {
   sizeMediumLarge: string;
   sizeLarge: string;
   sizeJumbo: string;
+  sizeExtraJumbo: string;
+  sizeGiant: string;
   sizeHelpText: string;
   sizeSpillText: string;
 
@@ -103,6 +105,8 @@ export interface TranslationDict {
   fastSpeed: string;
   practiceHint: string;
   closeBtn: string;
+  speedLabel: string;
+  strokeSequenceLabel: string;
 
   // 100 Character Library Modal
   libraryTitle: string;
@@ -117,9 +121,13 @@ export interface TranslationDict {
   noSetsFoundHint: string;
   categoriesLabel: string;
   clickSetToLoad: string;
+  subtopicsCount: string;
+  setsCount: string;
   applySet: string;
   modalDoneBtn: string;
   modeLabel: string;
+  modeTrad: string;
+  modeSimp: string;
 }
 
 export const translations: Record<Language, TranslationDict> = {
@@ -159,12 +167,14 @@ export const translations: Record<Language, TranslationDict> = {
     deduplicateLabel: 'Remove duplicate characters',
 
     charSizeLabel: 'Character Size',
-    sizeCompact: 'Compact',
-    sizeSmall: 'Small',
-    sizeStandard: 'Standard',
-    sizeMediumLarge: 'Medium-Large',
-    sizeLarge: 'Large',
-    sizeJumbo: 'Jumbo',
+    sizeCompact: 'Compact · 12 blanks',
+    sizeSmall: 'Small · 10 blanks',
+    sizeStandard: 'Standard · 9 blanks',
+    sizeMediumLarge: 'Medium-Large · 8 blanks',
+    sizeLarge: 'Large · 7 blanks',
+    sizeJumbo: 'Jumbo · 6 blanks',
+    sizeExtraJumbo: 'Extra Jumbo · 5 blanks',
+    sizeGiant: 'Giant · 4 blanks',
     sizeHelpText: 'Fits 1 reference + {practice} practice squares per row ({trace} faint trace + {blank} blank) · {rows} rows per page.',
     sizeSpillText: ' Characters spill cleanly across {pages} pages with blank practice grids completing each page.',
 
@@ -216,6 +226,9 @@ export const translations: Record<Language, TranslationDict> = {
     practiceHint: 'Use your mouse or finger to trace and write inside the balance grid above.',
     closeBtn: 'Close',
 
+    speedLabel: 'Speed:',
+    strokeSequenceLabel: 'Stroke Sequence (click to jump to step):',
+
     libraryTitle: 'Character Library',
     librarySubtitle: 'Choose from 100 curated 10-character sets across 10 categories',
     librarySetsCount: '100 Sets',
@@ -228,9 +241,13 @@ export const translations: Record<Language, TranslationDict> = {
     noSetsFoundHint: 'Try searching by English name, Chinese title, or an individual character',
     categoriesLabel: 'Categories ({count})',
     clickSetToLoad: 'Click a set to load',
+    subtopicsCount: '{count} Subtopics',
+    setsCount: '{count} sets',
     applySet: 'Apply',
     modalDoneBtn: 'Done',
     modeLabel: 'Mode:',
+    modeTrad: '繁體中文 (Traditional)',
+    modeSimp: '简体中文 (Simplified)',
   },
 
   'zh-Hans': {
@@ -269,12 +286,14 @@ export const translations: Record<Language, TranslationDict> = {
     deduplicateLabel: '去除重复汉字',
 
     charSizeLabel: '汉字格大小',
-    sizeCompact: '紧凑',
-    sizeSmall: '偏小',
-    sizeStandard: '标准',
-    sizeMediumLarge: '中大',
-    sizeLarge: '较大',
-    sizeJumbo: '超大',
+    sizeCompact: '紧凑 · 12格',
+    sizeSmall: '偏小 · 10格',
+    sizeStandard: '标准 · 9格',
+    sizeMediumLarge: '中大 · 8格',
+    sizeLarge: '较大 · 7格',
+    sizeJumbo: '超大 · 6格',
+    sizeExtraJumbo: '特大 · 5格',
+    sizeGiant: '极大 · 4格',
     sizeHelpText: '每行 1 个范字 + {practice} 个练习格（{trace} 个描红 + {blank} 个空白）· 每页 {rows} 行。',
     sizeSpillText: ' 超出一页的内容自动排入后续页面，多余行将自动填满空白练习格。',
 
@@ -326,6 +345,9 @@ export const translations: Record<Language, TranslationDict> = {
     practiceHint: '使用鼠标或手指在上方米字格内描摹练习书写。',
     closeBtn: '关闭',
 
+    speedLabel: '播放速度：',
+    strokeSequenceLabel: '笔画分解（点击跳转到指定步）：',
+
     libraryTitle: '汉字主题库',
     librarySubtitle: '涵盖 10 大分类、100 组精选 10 字练习集',
     librarySetsCount: '100 组',
@@ -338,9 +360,13 @@ export const translations: Record<Language, TranslationDict> = {
     noSetsFoundHint: '尝试输入英语名称、中文主题或单个汉字',
     categoriesLabel: '主题分类 ({count})',
     clickSetToLoad: '点击载入字帖',
+    subtopicsCount: '{count} 个子主题',
+    setsCount: '{count} 组',
     applySet: '应用',
     modalDoneBtn: '完成',
     modeLabel: '字形模式:',
+    modeTrad: '繁体中文 (Traditional)',
+    modeSimp: '简体中文 (Simplified)',
   },
 
   'zh-Hant': {
@@ -379,12 +405,14 @@ export const translations: Record<Language, TranslationDict> = {
     deduplicateLabel: '去除重複漢字',
 
     charSizeLabel: '漢字格大小',
-    sizeCompact: '緊湊',
-    sizeSmall: '偏小',
-    sizeStandard: '標準',
-    sizeMediumLarge: '中大',
-    sizeLarge: '較大',
-    sizeJumbo: '超大',
+    sizeCompact: '緊湊 · 12格',
+    sizeSmall: '偏小 · 10格',
+    sizeStandard: '標準 · 9格',
+    sizeMediumLarge: '中大 · 8格',
+    sizeLarge: '較大 · 7格',
+    sizeJumbo: '超大 · 6格',
+    sizeExtraJumbo: '特大 · 5格',
+    sizeGiant: '極大 · 4格',
     sizeHelpText: '每行 1 個範字 + {practice} 個練習格（{trace} 個描紅 + {blank} 個空白）· 每頁 {rows} 行。',
     sizeSpillText: ' 超出一頁的內容自動排入後續頁面，多餘行將自動填滿空白練習格。',
 
@@ -436,6 +464,9 @@ export const translations: Record<Language, TranslationDict> = {
     practiceHint: '使用滑鼠或手指在上方米字格內描摹練習書寫。',
     closeBtn: '關閉',
 
+    speedLabel: '播放速度：',
+    strokeSequenceLabel: '筆畫分解（點擊跳轉到指定步）：',
+
     libraryTitle: '漢字主題庫',
     librarySubtitle: '涵蓋 10 大分類、100 組精選 10 字練習集',
     librarySetsCount: '100 組',
@@ -448,8 +479,12 @@ export const translations: Record<Language, TranslationDict> = {
     noSetsFoundHint: '嘗試輸入英語名稱、中文主題或單個漢字',
     categoriesLabel: '主題分類 ({count})',
     clickSetToLoad: '點擊載入字帖',
+    subtopicsCount: '{count} 個子主題',
+    setsCount: '{count} 組',
     applySet: '應用',
     modalDoneBtn: '完成',
     modeLabel: '字形模式:',
+    modeTrad: '繁體中文 (Traditional)',
+    modeSimp: '簡體中文 (Simplified)',
   },
 };

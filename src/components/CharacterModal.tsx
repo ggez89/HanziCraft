@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CharacterItem, StrokeStyle } from '../types';
 import { medianToSvgPath } from '../utils/strokeService';
 import { X, Play, Pause, RotateCcw, PenTool, Eraser } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface CharacterModalProps {
   item: CharacterItem | null;
@@ -14,6 +15,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
   onClose,
   strokeStyle,
 }) => {
+  const { t } = useLanguage();
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [speed, setSpeed] = useState<number>(800); // ms per stroke
@@ -116,14 +118,15 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             <div>
               <div className="text-lg font-bold text-red-600 font-mono tracking-wide">{item.pinyin}</div>
               <div className="text-xs text-stone-500">
-                Strokes: <span className="font-semibold text-stone-700">{item.strokeCount || totalStrokes}</span>
+                {t.strokesCountLabel} <span className="font-semibold text-stone-700">{item.strokeCount || totalStrokes}</span>
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 rounded-full transition-colors cursor-pointer"
-            title="Close"
+            title={t.closeBtn}
+            aria-label={t.closeBtn}
           >
             <X className="w-5 h-5" />
           </button>
@@ -140,7 +143,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             }`}
           >
             <Play className="w-4 h-4" />
-            Stroke Order Animation
+            {t.tabAnimation}
           </button>
           <button
             onClick={() => setActiveTab('practice')}
@@ -151,7 +154,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             }`}
           >
             <PenTool className="w-4 h-4" />
-            Handwriting Canvas
+            {t.tabPractice}
           </button>
         </div>
 
@@ -161,12 +164,12 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             <>
               {/* Animation Box with neutral border */}
               <div className="relative w-64 h-64 border-2 border-stone-300 rounded-xl bg-white shadow-inner flex items-center justify-center overflow-hidden">
-                {/* Neutral Tianzige guidelines */}
+                {/* Crisp Darker Tianzige guidelines */}
                 <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none">
-                  <line x1="50" y1="0" x2="50" y2="100" stroke="#cbd5e1" strokeWidth="0.8" strokeDasharray="3,3" />
-                  <line x1="0" y1="50" x2="100" y2="50" stroke="#cbd5e1" strokeWidth="0.8" strokeDasharray="3,3" />
-                  <line x1="0" y1="0" x2="100" y2="100" stroke="#f1f5f9" strokeWidth="0.5" strokeDasharray="2,2" />
-                  <line x1="100" y1="0" x2="0" y2="100" stroke="#f1f5f9" strokeWidth="0.5" strokeDasharray="2,2" />
+                  <line x1="50" y1="0" x2="50" y2="100" stroke="#64748b" strokeWidth="1.0" strokeDasharray="3.5,2.5" />
+                  <line x1="0" y1="50" x2="100" y2="50" stroke="#64748b" strokeWidth="1.0" strokeDasharray="3.5,2.5" />
+                  <line x1="0" y1="0" x2="100" y2="100" stroke="#94a3b8" strokeWidth="0.8" strokeDasharray="2,2" />
+                  <line x1="100" y1="0" x2="0" y2="100" stroke="#94a3b8" strokeWidth="0.8" strokeDasharray="2,2" />
                 </svg>
 
                 {/* Animated strokes */}
@@ -209,11 +212,11 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                 >
                   {isPlaying ? (
                     <>
-                      <Pause className="w-4 h-4" /> Pause
+                      <Pause className="w-4 h-4" /> {t.pauseBtn}
                     </>
                   ) : (
                     <>
-                      <Play className="w-4 h-4" /> Play
+                      <Play className="w-4 h-4" /> {t.playBtn}
                     </>
                   )}
                 </button>
@@ -224,18 +227,18 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                   }}
                   className="flex items-center gap-1.5 px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-medium text-sm transition-colors cursor-pointer"
                 >
-                  <RotateCcw className="w-4 h-4" /> Replay
+                  <RotateCcw className="w-4 h-4" /> {t.restartBtn}
                 </button>
                 <div className="flex items-center gap-2 ml-2 text-xs text-stone-500">
-                  <span>Speed:</span>
+                  <span>{t.speedLabel}</span>
                   <select
                     value={speed}
                     onChange={(e) => setSpeed(Number(e.target.value))}
                     className="border border-stone-200 rounded px-2 py-1 text-xs bg-white text-stone-700 font-medium"
                   >
-                    <option value={1200}>Slow (0.5x)</option>
-                    <option value={800}>Normal (1.0x)</option>
-                    <option value={450}>Fast (1.5x)</option>
+                    <option value={1200}>{t.slowSpeed} (0.5x)</option>
+                    <option value={800}>{t.mediumSpeed} (1.0x)</option>
+                    <option value={450}>{t.fastSpeed} (1.5x)</option>
                   </select>
                 </div>
               </div>
@@ -244,15 +247,15 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             <>
               {/* Practice Drawing Canvas with neutral border */}
               <div className="relative w-64 h-64 border-2 border-stone-300 rounded-xl bg-white shadow-inner overflow-hidden select-none touch-none">
-                <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none opacity-25">
-                  <line x1="50" y1="0" x2="50" y2="100" stroke="#cbd5e1" strokeWidth="0.8" strokeDasharray="3,3" />
-                  <line x1="0" y1="50" x2="100" y2="50" stroke="#cbd5e1" strokeWidth="0.8" strokeDasharray="3,3" />
-                  <line x1="0" y1="0" x2="100" y2="100" stroke="#f1f5f9" strokeWidth="0.5" strokeDasharray="2,2" />
-                  <line x1="100" y1="0" x2="0" y2="100" stroke="#f1f5f9" strokeWidth="0.5" strokeDasharray="2,2" />
+                <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none opacity-45">
+                  <line x1="50" y1="0" x2="50" y2="100" stroke="#475569" strokeWidth="1.0" strokeDasharray="3.5,2.5" />
+                  <line x1="0" y1="50" x2="100" y2="50" stroke="#475569" strokeWidth="1.0" strokeDasharray="3.5,2.5" />
+                  <line x1="0" y1="0" x2="100" y2="100" stroke="#64748b" strokeWidth="0.8" strokeDasharray="2,2" />
+                  <line x1="100" y1="0" x2="0" y2="100" stroke="#64748b" strokeWidth="0.8" strokeDasharray="2,2" />
                   {strokes.length > 0 ? (
                     <g transform="translate(12, 87) scale(0.074, -0.074)">
                       {strokes.map((s, idx) => (
-                        <path key={idx} d={s} fill="#64748b" />
+                        <path key={idx} d={s} fill="#475569" />
                       ))}
                     </g>
                   ) : (
@@ -262,7 +265,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                       dominantBaseline="central"
                       textAnchor="middle"
                       fontSize="68"
-                      className="font-kaiti fill-stone-500"
+                      className="font-kaiti fill-stone-700"
                     >
                       {item.char}
                     </text>
@@ -289,9 +292,9 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                   onClick={clearCanvas}
                   className="flex items-center gap-1.5 px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-medium text-sm transition-colors cursor-pointer"
                 >
-                  <Eraser className="w-4 h-4" /> Clear Canvas
+                  <Eraser className="w-4 h-4" /> {t.clearCanvasBtn}
                 </button>
-                <span className="text-xs text-stone-400">Trace with mouse or touch</span>
+                <span className="text-xs text-stone-400">{t.practiceHint}</span>
               </div>
             </>
           )}
@@ -300,7 +303,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
           {totalStrokes > 0 && (
             <div className="w-full mt-6 pt-5 border-t border-stone-100">
               <div className="text-xs font-semibold text-stone-600 mb-2.5">
-                Stroke Sequence (click to jump to step):
+                {t.strokeSequenceLabel}
               </div>
               <div className="flex flex-wrap gap-1.5 justify-center max-h-32 overflow-y-auto p-1">
                 {strokes.map((_, idx) => (

@@ -4,6 +4,7 @@ import { GridCell } from './GridCell';
 import { StrokeOrderDiagram } from './StrokeOrderDiagram';
 import { HanziLogo } from './HanziLogo';
 import { Globe, MousePointer2 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface WorksheetPageProps {
   characters: CharacterItem[];
@@ -21,22 +22,31 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   totalPages = 1,
   onCharacterClick,
 }) => {
+  const { t, formatText } = useLanguage();
   // Available printable width on US Letter 8.5" (~190mm)
   const availableWidthMm = 190;
   const rawSize = settings.characterSizeMm || 18;
   
-  // Total frames per row dynamically scales so it never overflows (at standard 18mm: 10 frames = 1 model + 9 practice)
-  const totalSlots = rawSize === 18 ? 10 : Math.max(5, Math.floor(availableWidthMm / rawSize));
+  // Total frames per row dynamically scales so it never overflows:
+  // 18mm: 10 frames (1 model + 9 practice)
+  // 24mm: 7 frames (1 model + 6 practice)
+  // 28mm: 6 frames (1 model + 5 practice)
+  // 32mm: 5 frames (1 model + 4 practice)
+  const totalSlots =
+    rawSize === 18 ? 10 :
+    rawSize === 28 ? 6 :
+    rawSize === 32 ? 5 :
+    Math.max(5, Math.floor(availableWidthMm / rawSize));
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
 
-  // Proportional scaling for pinyin and stroke breakdown diagrams
+  // Proportional scaling for pinyin and stroke breakdown diagrams (larger, crisp, and clearly visible when printed)
   const sizeRatio = rawSize / 18;
-  const pinyinFontSizePx = Math.max(9, Math.round(11 * sizeRatio));
-  const strokeOrderSizePx = Math.max(12, Math.round(14 * sizeRatio));
+  const pinyinFontSizePx = Math.max(11, Math.round(13 * sizeRatio));
+  const strokeOrderSizePx = Math.max(19, Math.round(24 * sizeRatio));
   const infoLineHeightPx = Math.max(strokeOrderSizePx, pinyinFontSizePx + 2);
-  const infoMarginBottomPx = 1;
-  const infoGapPx = Math.max(3, Math.round(5 * sizeRatio));
+  const infoMarginBottomPx = 2;
+  const infoGapPx = Math.max(4, Math.round(6 * sizeRatio));
 
   // Rows capacity dynamically calculated per character size so paper size is strictly constant Letter (11in)
   const maxRowsPerPage = getRowsPerPage(rawSize);
@@ -53,6 +63,8 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
     20: 76,
     22: 85,
     24: 97,
+    28: 114,
+    32: 136,
   };
   const cellPx = cellPxMap[rawSize] || Math.floor((availableWidthMm / totalSlots) * 3.52);
 
@@ -69,15 +81,20 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
             <div className="flex items-center gap-2.5">
               <HanziLogo size={22} />
               <h1 className={`text-sm sm:text-base font-bold text-stone-900 tracking-wide ${titleFontClass}`}>
-                {settings.title || '基础汉字书写练习'}
+                {settings.title || t.worksheetTitlePlaceholder}
               </h1>
             </div>
 
-            {/* Top Right: Student Name field */}
-            <div className="text-xs sm:text-sm font-medium text-stone-900 text-right shrink-0">
+            {/* Top Right: Student Name & Date fields */}
+            <div className="text-xs sm:text-sm font-medium text-stone-900 text-right shrink-0 flex items-center gap-3">
+              {settings.headerDate && (
+                <span>
+                  {t.dateField}<span className="inline-block border-b border-stone-800 w-16 sm:w-20"></span>
+                </span>
+              )}
               {settings.headerStudentName && (
                 <span>
-                  姓名：<span className="inline-block border-b border-stone-800 w-24 sm:w-32"></span>
+                  {t.studentNameField}<span className="inline-block border-b border-stone-800 w-24 sm:w-32"></span>
                 </span>
               )}
             </div>
@@ -119,6 +136,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
                         strokeData={item.strokeData}
                         strokeStyle={settings.strokeStyle}
                         sizePx={strokeOrderSizePx}
+                        maxWidthPx={580}
                       />
                     )}
                   </div>
@@ -211,7 +229,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
         {/* Page counter matching Mathletics: only shown when totalPages > 1 */}
         {totalPages > 1 && (
           <div className="text-gray-500 font-bold text-[11px] print:text-gray-700 font-mono tracking-wider select-none">
-            PAGE {pageIndex + 1} OF {totalPages}
+            {formatText(t.footerPageOf, { current: pageIndex + 1, total: totalPages })}
           </div>
         )}
       </footer>

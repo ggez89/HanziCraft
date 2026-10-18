@@ -181,7 +181,7 @@ export function App() {
             }`}
           >
             <Sliders className="w-4 h-4" />
-            <span>Page Setup</span>
+            <span>{t.tabSetup}</span>
           </button>
           <button
             type="button"
@@ -193,7 +193,7 @@ export function App() {
             }`}
           >
             <Eye className="w-4 h-4" />
-            <span>Page View</span>
+            <span>{t.tabPreview}</span>
             {pages.length > 1 && (
               <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-mono font-bold">
                 {pages.length}p
@@ -232,7 +232,7 @@ export function App() {
                 className="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
               >
                 <Eye className="w-4 h-4" />
-                <span>View Worksheet Preview ({characters.length} chars)</span>
+                <span>{formatText(t.tabJumpToPreview, { count: characters.length })}</span>
               </button>
             </div>
           </div>
@@ -247,9 +247,9 @@ export function App() {
             <div className="no-print w-full flex items-center justify-between mb-4 px-2">
               <div className="flex items-center gap-2 text-xs font-semibold text-stone-600">
                 <Eye className="w-4 h-4 text-stone-500" />
-                <span>Live Preview</span>
+                <span>{t.livePreview}</span>
                 <span className="bg-stone-200 text-stone-700 px-2 py-0.5 rounded-full text-[10px]">
-                  {characters.length} {characters.length === 1 ? 'char' : 'chars'}
+                  {characters.length} {characters.length === 1 ? t.charUnitSingular : t.charsUnit}
                 </span>
               </div>
 
@@ -261,19 +261,19 @@ export function App() {
                     onClick={() => setCurrentPageIndex((prev) => Math.max(0, prev - 1))}
                     disabled={currentPageIndex === 0}
                     className="p-1 rounded hover:bg-stone-100 disabled:opacity-25 disabled:hover:bg-transparent text-stone-700 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                    title="Previous page"
+                    title={t.prevPage}
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <span className="text-xs font-bold text-stone-700 px-2 select-none">
-                    Page {currentPageIndex + 1} of {pages.length}
+                    {formatText(t.pageCounter, { current: currentPageIndex + 1, total: pages.length })}
                   </span>
                   <button
                     type="button"
                     onClick={() => setCurrentPageIndex((prev) => Math.min(pages.length - 1, prev + 1))}
                     disabled={currentPageIndex === pages.length - 1}
                     className="p-1 rounded hover:bg-stone-100 disabled:opacity-25 disabled:hover:bg-transparent text-stone-700 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                    title="Next page"
+                    title={t.nextPage}
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -286,7 +286,7 @@ export function App() {
                 className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-stone-700 hover:text-stone-900 bg-white hover:bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg shadow-2xs transition-colors cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
-                Print / Save PDF
+                {t.printOrSavePdf}
               </button>
             </div>
 
@@ -339,10 +339,10 @@ export function App() {
                     className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-200 rounded-lg shadow-2xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    Previous Page
+                    {t.prevPage}
                   </button>
                   <span className="text-xs font-bold text-stone-600 px-2 select-none">
-                    Page {currentPageIndex + 1} of {pages.length}
+                    {formatText(t.pageCounter, { current: currentPageIndex + 1, total: pages.length })}
                   </span>
                   <button
                     type="button"
@@ -350,7 +350,7 @@ export function App() {
                     disabled={currentPageIndex === pages.length - 1}
                     className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-200 rounded-lg shadow-2xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
                   >
-                    Next Page
+                    {t.nextPage}
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>

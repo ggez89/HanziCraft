@@ -17,7 +17,7 @@ export interface CharacterItem {
 
 export interface WorksheetSettings {
   title: string;
-  characterSizeMm: number; // 12 to 24 (default 17)
+  characterSizeMm: number; // 14 to 32 (default 18)
   strokeStyle: StrokeStyle; // 'heiti' (sans-serif) or 'kaiti' (brush)
   faintTrace: boolean;
   strokeOrderBreakdown: boolean;
@@ -33,5 +33,7 @@ export const getRowsPerPage = (sizeMm: number = 18): number => {
   if (sizeMm <= 18) return 10;
   if (sizeMm <= 20) return 9;
   if (sizeMm <= 22) return 8;
-  return 7; // 24mm (Jumbo)
+  if (sizeMm <= 24) return 7; // 24mm (fits 6 blank squares)
+  if (sizeMm <= 28) return 6; // 28mm (fits 5 blank squares)
+  return 5; // 32mm (fits 4 blank squares)
 };

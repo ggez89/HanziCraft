@@ -22,6 +22,7 @@ import {
   Sparkles,
   Check,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface CharacterLibraryModalProps {
   isOpen: boolean;
@@ -66,6 +67,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
   currentScript = 'simplified',
   onScriptChange,
 }) => {
+  const { t, formatText } = useLanguage();
   const [selectedScript, setSelectedScript] = useState<ScriptType>(currentScript);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState<string>(CHARACTER_CATEGORIES[0].id);
@@ -147,14 +149,14 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-bold text-stone-900 tracking-tight">
-                  Character Library
+                  {t.libraryTitle}
                 </h2>
                 <span className="text-[11px] font-semibold text-stone-500 bg-stone-200/70 px-2 py-0.5 rounded-full">
-                  100 Sets
+                  {t.librarySetsCount}
                 </span>
               </div>
               <p className="text-xs text-stone-500 hidden sm:block">
-                Choose from 100 curated 10-character sets across 10 categories
+                {t.librarySubtitle}
               </p>
             </div>
           </div>
@@ -171,7 +173,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                     : 'text-stone-600 hover:text-stone-900'
                 }`}
               >
-                简体 Simplified
+                {t.scriptSimplified}
               </button>
               <button
                 type="button"
@@ -182,7 +184,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                     : 'text-stone-600 hover:text-stone-900'
                 }`}
               >
-                繁體 Traditional
+                {t.scriptTraditional}
               </button>
             </div>
 
@@ -191,7 +193,8 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
               type="button"
               onClick={onClose}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors cursor-pointer"
-              aria-label="Close modal"
+              title={t.closeBtn}
+              aria-label={t.closeBtn}
             >
               <X className="w-5 h-5" />
             </button>
@@ -206,11 +209,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                isTrad
-                  ? '搜尋主題、英語名稱或漢字（例如：天氣、Weather、雨、動物）...'
-                  : '搜索主题、英语名称或汉字（例如：天气、Weather、雨、动物）...'
-              }
+              placeholder={t.searchPlaceholder}
               className="w-full pl-10 pr-9 py-2 text-sm bg-stone-50 border border-stone-200 rounded-xl text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
             />
             {searchQuery && (
@@ -232,17 +231,21 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-stone-200">
                 <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
-                  Search Results ({searchResults.length})
+                  {formatText(t.searchResultsHeader, { count: searchResults.length })}
                 </span>
                 <span className="text-xs text-stone-400">
-                  Click any set to load 10 characters into worksheet
+                  {t.searchHint}
                 </span>
               </div>
 
               {searchResults.length === 0 ? (
                 <div className="py-16 text-center text-stone-400">
-                  <p className="text-sm font-medium">No character sets found matching "{searchQuery}"</p>
-                  <p className="text-xs mt-1">Try searching by English name, Chinese title, or an individual character</p>
+                  <p className="text-sm font-medium">
+                    {formatText(t.noSetsFound, { query: searchQuery })}
+                  </p>
+                  <p className="text-xs mt-1">
+                    {t.noSetsFoundHint}
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -251,6 +254,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                       key={set.id}
                       set={set}
                       isTrad={isTrad}
+                      applyLabel={t.applySet}
                       onSelect={() => onSelectSet(set, selectedScript)}
                     />
                   ))}
@@ -263,7 +267,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
               {/* DESKTOP LEFT SIDEBAR: Category List (Hidden on small mobile) */}
               <aside className="hidden md:flex flex-col w-72 shrink-0 border-r border-stone-200 bg-stone-50/50 overflow-y-auto p-3 space-y-1">
                 <span className="text-[11px] font-bold text-stone-400 px-3 py-1.5 uppercase tracking-wider">
-                  Categories ({CHARACTER_CATEGORIES.length})
+                  {formatText(t.categoriesLabel, { count: CHARACTER_CATEGORIES.length })}
                 </span>
                 {CHARACTER_CATEGORIES.map((cat) => {
                   const isActive = cat.id === activeCategoryId;
@@ -328,10 +332,12 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                             <h3 className="text-base font-bold text-stone-900">
                               {isTrad ? activeCat.nameTrad : activeCat.nameSimp}
                             </h3>
-                            <p className="text-xs text-stone-400">{activeCat.nameEn} · 10 Subtopics</p>
+                            <p className="text-xs text-stone-400">
+                              {activeCat.nameEn} · {formatText(t.subtopicsCount, { count: 10 })}
+                            </p>
                           </div>
                         </div>
-                        <span className="text-xs text-stone-400">Click a set to load</span>
+                        <span className="text-xs text-stone-400">{t.clickSetToLoad}</span>
                       </div>
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
@@ -340,6 +346,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                             key={set.id}
                             set={set}
                             isTrad={isTrad}
+                            applyLabel={t.applySet}
                             onSelect={() => onSelectSet(set, selectedScript)}
                           />
                         ))}
@@ -376,7 +383,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-bold text-stone-500 bg-stone-200/60 px-1.5 py-0.5 rounded-full">
-                            10 sets
+                            {formatText(t.setsCount, { count: 10 })}
                           </span>
                           <ChevronRight
                             className={`w-4 h-4 text-stone-400 transition-transform ${
@@ -393,6 +400,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                               key={set.id}
                               set={set}
                               isTrad={isTrad}
+                              applyLabel={t.applySet}
                               onSelect={() => onSelectSet(set, selectedScript)}
                             />
                           ))}
@@ -410,9 +418,9 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
         <footer className="px-5 py-3 border-t border-stone-200 bg-stone-50/80 flex items-center justify-between text-xs text-stone-500 shrink-0">
           <div className="flex items-center gap-2">
             <span>
-              Mode:{' '}
+              {t.modeLabel}{' '}
               <strong className="text-stone-800">
-                {isTrad ? '繁體中文 (Traditional)' : '简体中文 (Simplified)'}
+                {isTrad ? t.modeTrad : t.modeSimp}
               </strong>
             </span>
           </div>
@@ -421,7 +429,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
             onClick={onClose}
             className="px-4 py-1.5 bg-white hover:bg-stone-100 text-stone-700 font-semibold rounded-lg border border-stone-200 shadow-2xs transition-colors cursor-pointer"
           >
-            Done
+            {t.modalDoneBtn}
           </button>
         </footer>
       </div>
@@ -433,10 +441,16 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
 interface CharacterSetCardProps {
   set: CharacterSet;
   isTrad: boolean;
+  applyLabel: string;
   onSelect: () => void;
 }
 
-const CharacterSetCard: React.FC<CharacterSetCardProps> = ({ set, isTrad, onSelect }) => {
+const CharacterSetCard: React.FC<CharacterSetCardProps> = ({
+  set,
+  isTrad,
+  applyLabel,
+  onSelect,
+}) => {
   const characters = isTrad ? set.charactersTrad : set.charactersSimp;
   const subcategoryTitle = isTrad ? set.subcategoryTrad : set.subcategorySimp;
 
@@ -456,7 +470,7 @@ const CharacterSetCard: React.FC<CharacterSetCardProps> = ({ set, isTrad, onSele
           </span>
         </div>
         <span className="text-[10px] font-bold text-red-600 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-          Apply <Check className="w-3 h-3" />
+          {applyLabel} <Check className="w-3 h-3" />
         </span>
       </div>
 
