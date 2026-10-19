@@ -175,7 +175,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                 {/* Animated strokes */}
                 <svg viewBox="0 0 100 100" className="w-full h-full relative z-10">
                   {totalStrokes > 0 ? (
-                    <g transform="translate(12, 87) scale(0.074, -0.074)">
+                    <g transform="translate(7.5, 83.6) scale(0.083, -0.083)">
                       {strokes.slice(0, currentStep).map((s, idx) => (
                         <path
                           key={idx}
@@ -187,10 +187,10 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                   ) : (
                     <text
                       x="50"
-                      y="54"
+                      y="46"
                       dominantBaseline="central"
                       textAnchor="middle"
-                      fontSize="68"
+                      fontSize="80"
                       className="font-kaiti fill-stone-900"
                     >
                       {item.char}
@@ -253,7 +253,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                   <line x1="0" y1="0" x2="100" y2="100" stroke="#64748b" strokeWidth="0.8" strokeDasharray="2,2" />
                   <line x1="100" y1="0" x2="0" y2="100" stroke="#64748b" strokeWidth="0.8" strokeDasharray="2,2" />
                   {strokes.length > 0 ? (
-                    <g transform="translate(12, 87) scale(0.074, -0.074)">
+                    <g transform="translate(7.5, 83.6) scale(0.083, -0.083)">
                       {strokes.map((s, idx) => (
                         <path key={idx} d={s} fill="#475569" />
                       ))}
@@ -261,10 +261,10 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                   ) : (
                     <text
                       x="50"
-                      y="54"
+                      y="46"
                       dominantBaseline="central"
                       textAnchor="middle"
-                      fontSize="68"
+                      fontSize="80"
                       className="font-kaiti fill-stone-700"
                     >
                       {item.char}

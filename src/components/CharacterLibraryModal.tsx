@@ -20,6 +20,7 @@ import {
   Home,
   Compass,
   Sparkles,
+  Award,
   Check,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -55,6 +56,8 @@ const getCategoryIcon = (iconName: string, className = 'w-4 h-4') => {
       return <Compass className={className} />;
     case 'Sparkles':
       return <Sparkles className={className} />;
+    case 'Award':
+      return <Award className={className} />;
     default:
       return <BookOpen className={className} />;
   }
@@ -308,7 +311,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                           isActive ? 'bg-white/25 text-white' : 'bg-stone-200/60 text-stone-500'
                         }`}
                       >
-                        10
+                        {cat.sets.length}
                       </span>
                     </button>
                   );
@@ -333,7 +336,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                               {isTrad ? activeCat.nameTrad : activeCat.nameSimp}
                             </h3>
                             <p className="text-xs text-stone-400">
-                              {activeCat.nameEn} · {formatText(t.subtopicsCount, { count: 10 })}
+                              {activeCat.nameEn} · {formatText(t.subtopicsCount, { count: activeCat.sets.length })}
                             </p>
                           </div>
                         </div>
@@ -383,7 +386,7 @@ export const CharacterLibraryModal: React.FC<CharacterLibraryModalProps> = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-bold text-stone-500 bg-stone-200/60 px-1.5 py-0.5 rounded-full">
-                            {formatText(t.setsCount, { count: 10 })}
+                            {formatText(t.setsCount, { count: cat.sets.length })}
                           </span>
                           <ChevronRight
                             className={`w-4 h-4 text-stone-400 transition-transform ${

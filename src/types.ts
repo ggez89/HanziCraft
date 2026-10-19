@@ -28,12 +28,12 @@ export interface WorksheetSettings {
 }
 
 export const getRowsPerPage = (sizeMm: number = 18): number => {
-  if (sizeMm <= 14) return 12;
-  if (sizeMm <= 16) return 11;
+  if (sizeMm <= 14) return 11;
+  if (sizeMm <= 16) return 10;
   if (sizeMm <= 18) return 10;
-  if (sizeMm <= 20) return 9;
-  if (sizeMm <= 22) return 8;
-  if (sizeMm <= 24) return 7; // 24mm (fits 6 blank squares)
-  if (sizeMm <= 28) return 6; // 28mm (fits 5 blank squares)
-  return 5; // 32mm (fits 4 blank squares)
+  if (sizeMm <= 20) return 8;
+  if (sizeMm <= 22) return 7; // 22mm: 7 rows prevents bottom overflow
+  if (sizeMm <= 24) return 6; // 24mm: 6 rows
+  if (sizeMm <= 28) return 5; // 28mm: 5 rows
+  return 4; // 32mm: 4 rows
 };

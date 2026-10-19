@@ -40,13 +40,12 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const practiceSlots = totalSlots - 1;
   const faintTraceSlots = settings.faintTrace ? Math.min(4, Math.floor(practiceSlots / 2)) : 0;
 
-  // Proportional scaling for pinyin and stroke breakdown diagrams (larger, crisp, and clearly visible when printed)
-  const sizeRatio = rawSize / 18;
-  const pinyinFontSizePx = Math.max(11, Math.round(13 * sizeRatio));
-  const strokeOrderSizePx = Math.max(19, Math.round(24 * sizeRatio));
-  const infoLineHeightPx = Math.max(strokeOrderSizePx, pinyinFontSizePx + 2);
+  // Proportional scaling for pinyin and stroke breakdown diagrams (crisp, clearly visible, strictly within page margins)
+  const pinyinFontSizePx = rawSize >= 24 ? 13 : rawSize >= 20 ? 12 : 12;
+  const strokeOrderSizePx = rawSize >= 28 ? 26 : rawSize >= 22 ? 25 : 24;
+  const infoLineHeightPx = strokeOrderSizePx;
   const infoMarginBottomPx = 2;
-  const infoGapPx = Math.max(4, Math.round(6 * sizeRatio));
+  const infoGapPx = 6;
 
   // Rows capacity dynamically calculated per character size so paper size is strictly constant Letter (11in)
   const maxRowsPerPage = getRowsPerPage(rawSize);
@@ -72,7 +71,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
   const titleFontClass = settings.strokeStyle === 'kaiti' ? 'font-kaiti' : 'font-heiti';
 
   return (
-    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto px-6 pt-5 pb-3 mb-0 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[8.5in] h-[11in] max-h-[11in] print:w-[8.5in] print:h-[11in] print:min-h-[11in] print:max-h-[11in] box-border relative flex flex-col justify-between overflow-hidden select-none">
+    <div className="print-container bg-white text-stone-900 shadow-xl border border-stone-200/90 rounded-sm mx-auto px-6 pt-4 pb-3 mb-0 print:mb-0 print:border-none print:shadow-none print:rounded-none w-[8.5in] h-[11in] max-h-[11in] print:w-[8.5in] print:h-[11in] print:min-h-[11in] print:max-h-[11in] box-border relative flex flex-col justify-between overflow-hidden select-none">
       <div className="flex-1 min-h-0 flex flex-col justify-between">
         {/* Page Header: Left-aligned Logo + Worksheet Title, with Name on right */}
         <div className="mb-1 shrink-0 w-full px-1">
@@ -105,7 +104,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
         </div>
 
         {/* Character Rows evenly and beautifully distributed down to the footer, centered horizontally */}
-        <div className="flex-1 min-h-0 flex flex-col justify-between py-1 items-center w-full">
+        <div className="flex-1 min-h-0 flex flex-col justify-around py-0.5 items-center w-full">
           {/* 1. Rows with practice characters */}
           {characters.map((item) => {
             return (
@@ -136,7 +135,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
                         strokeData={item.strokeData}
                         strokeStyle={settings.strokeStyle}
                         sizePx={strokeOrderSizePx}
-                        maxWidthPx={580}
+                        maxWidthPx={620}
                       />
                     )}
                   </div>
@@ -209,7 +208,7 @@ export const WorksheetPage: React.FC<WorksheetPageProps> = ({
       </div>
 
       {/* Page Footer matching Mathletics */}
-      <footer className="border-t border-stone-200/90 pt-2 mt-auto flex items-center justify-between text-gray-400 print:text-gray-600 shrink-0 w-full px-1">
+      <footer className="border-t border-stone-200/90 pt-1.5 pb-0.5 mt-auto flex items-center justify-between text-gray-400 print:text-gray-600 shrink-0 w-full px-1">
         <a
           href="https://hanzi.patrickyou.ng"
           target="_blank"

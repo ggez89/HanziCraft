@@ -28,7 +28,7 @@ export const StrokeOrderDiagram: React.FC<StrokeOrderDiagramProps> = ({
   const gapPx = count > 12 ? 2 : 3;
   const totalNeeded = count * sizePx + (count - 1) * gapPx;
   const actualSizePx = totalNeeded > maxWidthPx
-    ? Math.max(16, Math.floor((maxWidthPx - (count - 1) * gapPx) / count))
+    ? Math.max(20, Math.floor((maxWidthPx - (count - 1) * gapPx) / count))
     : sizePx;
 
   return (
@@ -43,37 +43,37 @@ export const StrokeOrderDiagram: React.FC<StrokeOrderDiagramProps> = ({
           <div
             key={stepIdx}
             style={{ width: `${actualSizePx}px`, height: `${actualSizePx}px` }}
-            className="inline-flex items-center justify-center shrink-0 border border-stone-300/80 rounded-[3px] bg-white p-0.5 shadow-3xs"
+            className="inline-flex items-center justify-center shrink-0 border border-stone-400 rounded-[3px] bg-white p-0.5 shadow-3xs"
             title={`Step ${stepIdx + 1} of ${strokes.length}`}
           >
             <svg viewBox="0 0 100 100" className="w-full h-full" style={{ display: 'block' }}>
               {isSansSerif ? (
                 // Sans-Serif (黑体): Centerline median paths with uniform stroke widths & rounded caps
                 <g
-                  transform="translate(12, 87) scale(0.074, -0.074)"
-                  strokeWidth="68"
+                  transform="translate(7.5, 83.6) scale(0.083, -0.083)"
+                  strokeWidth="78"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   fill="none"
                 >
-                  {/* Previous completed strokes in dark black */}
+                  {/* Previous completed strokes in solid black */}
                   {medians.slice(0, activeIdx).map((m, prevIdx) => (
-                    <path key={prevIdx} d={medianToSvgPath(m)} stroke="#0f172a" />
+                    <path key={prevIdx} d={medianToSvgPath(m)} stroke="#000000" />
                   ))}
-                  {/* Newly added stroke in vibrant red */}
+                  {/* Newly added stroke in vibrant deep red */}
                   {medians[activeIdx] && (
-                    <path d={medianToSvgPath(medians[activeIdx])} stroke="#dc2626" />
+                    <path d={medianToSvgPath(medians[activeIdx])} stroke="#b91c1c" />
                   )}
                 </g>
               ) : (
                 // Brush / Calligraphy (楷体): Traditional brush strokes with tapers and flairs
-                <g transform="translate(12, 87) scale(0.074, -0.074)">
-                  {/* Previous completed strokes in dark black */}
+                <g transform="translate(7.5, 83.6) scale(0.083, -0.083)">
+                  {/* Previous completed strokes in solid black */}
                   {strokes.slice(0, activeIdx).map((s, prevIdx) => (
-                    <path key={prevIdx} d={s} fill="#0f172a" />
+                    <path key={prevIdx} d={s} fill="#000000" />
                   ))}
-                  {/* Newly added stroke in vibrant red */}
-                  <path d={strokes[activeIdx]} fill="#dc2626" />
+                  {/* Newly added stroke in vibrant deep red */}
+                  <path d={strokes[activeIdx]} fill="#b91c1c" />
                 </g>
               )}
             </svg>

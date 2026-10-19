@@ -109,9 +109,11 @@ export function buildPageSvg(
         strokes.forEach((_, stepIdx) => {
           const stepX = currentX + stepIdx * (strokeStepSizeMm + 1.2);
           const stepY = (infoLineHeightMm - strokeStepSizeMm) / 2;
-          const scale = strokeStepSizeMm / 1024;
+          const scale = (strokeStepSizeMm * 0.84) / 1024;
+          const transX = stepX + strokeStepSizeMm * 0.08;
+          const transY = stepY + strokeStepSizeMm * 0.835;
 
-          rowXml += `<g transform="translate(${stepX}, ${stepY + strokeStepSizeMm}) scale(${scale}, ${-scale})">`;
+          rowXml += `<g transform="translate(${transX}, ${transY}) scale(${scale}, ${-scale})">`;
 
           if (isSans) {
             // Sans-Serif centerline medians
@@ -157,9 +159,9 @@ export function buildPageSvg(
 
       // Character Glyphs (Model Reference or Faint Trace)
       if ((isReference || isTrace) && item?.strokeData?.strokes) {
-        const glyphSizeMm = cellWidth * 0.78;
-        const glyphX = boxX + cellWidth * 0.11;
-        const glyphY = boxY + cellWidth * 0.89;
+        const glyphSizeMm = cellWidth * 0.84;
+        const glyphX = boxX + cellWidth * 0.08;
+        const glyphY = boxY + cellWidth * 0.835;
         const scale = glyphSizeMm / 1024;
         const fill = isTrace ? '#94a3b8' : '#0f172a';
         const opacity = isTrace ? '0.35' : '1';

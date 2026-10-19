@@ -22,15 +22,15 @@ export const GridCell: React.FC<GridCellProps> = ({
   className = '',
   onClick,
 }) => {
-  // Laser-printer optimized crisp guidelines colors
-  const innerLineColor = '#475569'; // Slate-600: strong, crisp dashed cross guidelines
+  // Laser-printer optimized crisp guidelines colors (high-contrast for sharp printing)
+  const innerLineColor = '#334155'; // Slate-700: strong, crisp dashed cross guidelines
   const diagonalLineColor = '#64748b'; // Slate-500: clear, visible diagonal balance lines
-  const outerBorderColor = '#0f172a'; // Slate-900: solid, razor-sharp outer box border
+  const outerBorderColor = '#000000'; // Pure black: solid, razor-sharp outer box border
 
   // Character rendering styles (optimized for laser printers with clear tracing contrast)
   const isTrace = mode === 'trace';
-  const charFill = isTrace ? '#475569' : '#0f172a';
-  const charOpacity = isTrace ? 0.60 : 1;
+  const charFill = isTrace ? '#334155' : '#000000';
+  const charOpacity = isTrace ? 0.72 : 1;
 
   return (
     <div
@@ -47,35 +47,35 @@ export const GridCell: React.FC<GridCellProps> = ({
       >
         {/* Solid Pure White Background & Crisp Outer Border */}
         <rect
-          x="0.7"
-          y="0.7"
-          width="98.6"
-          height="98.6"
+          x="0.75"
+          y="0.75"
+          width="98.5"
+          height="98.5"
           fill="#ffffff"
           stroke={outerBorderColor}
-          strokeWidth="1.4"
+          strokeWidth="1.5"
         />
 
         {/* Inner Mizige / Tianzige guidelines */}
         {showGridlines && (
           <g>
             {/* Diagonal guidelines */}
-            <line x1="1" y1="1" x2="99" y2="99" stroke={diagonalLineColor} strokeWidth="0.85" />
-            <line x1="99" y1="1" x2="1" y2="99" stroke={diagonalLineColor} strokeWidth="0.85" />
+            <line x1="1" y1="1" x2="99" y2="99" stroke={diagonalLineColor} strokeWidth="0.95" />
+            <line x1="99" y1="1" x2="1" y2="99" stroke={diagonalLineColor} strokeWidth="0.95" />
 
             {/* Cross guidelines */}
-            <line x1="50" y1="1" x2="50" y2="99" stroke={innerLineColor} strokeWidth="1.0" strokeDasharray="3.5,2.5" />
-            <line x1="1" y1="50" x2="99" y2="50" stroke={innerLineColor} strokeWidth="1.0" strokeDasharray="3.5,2.5" />
+            <line x1="50" y1="1" x2="50" y2="99" stroke={innerLineColor} strokeWidth="1.15" strokeDasharray="4,2.5" />
+            <line x1="1" y1="50" x2="99" y2="50" stroke={innerLineColor} strokeWidth="1.15" strokeDasharray="4,2.5" />
           </g>
         )}
 
-        {/* Character overlay */}
+        {/* Character overlay - perfectly centered horizontally and vertically at (50, 50) with 8% margins */}
         {mode !== 'empty' && char && (
           <>
             {strokeData && strokeStyle === 'kaiti' ? (
-              // Authentic Calligraphy / Brush strokes
+              // Authentic Calligraphy / Brush strokes - centered on (50, 50) with equal 8% margins
               <g
-                transform="translate(12, 87) scale(0.074, -0.074)"
+                transform="translate(7.5, 83.6) scale(0.083, -0.083)"
                 fill={charFill}
                 opacity={charOpacity}
               >
@@ -84,13 +84,13 @@ export const GridCell: React.FC<GridCellProps> = ({
                 ))}
               </g>
             ) : (
-              // Clean Sans-Serif Typography (solid, crisp, no scribbles)
+              // Clean Sans-Serif Typography - centered on (50, 50) with equal 8% margins
               <text
                 x="50"
-                y="54"
+                y="46"
                 dominantBaseline="central"
                 textAnchor="middle"
-                fontSize="68"
+                fontSize="80"
                 fill={charFill}
                 opacity={charOpacity}
                 className="font-heiti font-normal"

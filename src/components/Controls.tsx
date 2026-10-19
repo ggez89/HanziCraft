@@ -69,6 +69,7 @@ export const Controls: React.FC<ControlsProps> = ({
 
   const presets = [
     { name: '1–10', text: '一二三四五六七八九十' },
+    { name: t.presetSurnames, text: '李王张刘陈杨赵黄周吴' },
     { name: t.presetGreetings, text: '你好谢谢再见朋友大家欢迎' },
     { name: t.presetNature, text: '日月水火山石田土风雨天' },
     { name: t.presetStudy, text: '看读书写学习字文听' },
@@ -260,10 +261,10 @@ export const Controls: React.FC<ControlsProps> = ({
       <div className="border border-stone-200 rounded-2xl p-4 bg-white shadow-2xs">
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="min-w-0">
-            <span className="text-xs font-bold text-stone-700 tracking-wider uppercase block truncate">
+            <span className="text-xs font-bold text-stone-700 tracking-wider uppercase block">
               {t.charSizeLabel}
             </span>
-            <span className="text-xs font-semibold text-red-600 block truncate mt-0.5">
+            <span className="text-xs font-semibold text-red-600 block mt-0.5 whitespace-nowrap">
               {getSizeLabel(settings.characterSizeMm)}
             </span>
           </div>
