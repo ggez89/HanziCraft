@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { CharacterItem, StrokeStyle } from '../types';
 import { medianToSvgPath } from '../utils/strokeService';
 import { X, Play, Pause, RotateCcw, PenTool, Eraser } from 'lucide-react';
@@ -17,10 +17,11 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
 }) => {
   const { t } = useLanguage();
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
-  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [currentStrokeIndex, setCurrentStrokeIndex] = useState<number>(0);
+  const [strokeProgress, setStrokeProgress] = useState<number>(0); // 0 to 1 along median
+  const [isDone, setIsDone] = useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(800); // ms per stroke
   const [activeTab, setActiveTab] = useState<'animate' | 'practice'>('animate');
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Drawing canvas state
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -29,31 +30,147 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
   const strokes = item?.strokeData?.strokes || [];
   const medians = item?.strokeData?.medians || [];
   const totalStrokes = strokes.length;
+  const isSansSerif = strokeStyle === 'heiti' && medians.length === strokes.length && totalStrokes > 0;
 
-  // Animation loop
+  // Compute geometric length of each stroke's centerline median for accurate SVG dash offset brushing
+  const strokeLengths = useMemo(() => {
+    return medians.map((m) => {
+      if (!m || m.length < 2) return 500;
+      let len = 0;
+      for (let i = 1; i < m.length; i++) {
+        const dx = m[i][0] - m[i - 1][0];
+        const dy = m[i][1] - m[i - 1][1];
+        len += Math.sqrt(dx * dx + dy * dy);
+      }
+      return Math.ceil(len + 80);
+    });
+  }, [medians]);
+
+  const animStateRef = useRef<{
+    lastTime: number | null;
+    phase: 'drawing' | 'stepPause' | 'fullPause';
+    phaseTime: number;
+    strokeIndex: number;
+  }>({
+    lastTime: null,
+    phase: 'drawing',
+    phaseTime: 0,
+    strokeIndex: 0,
+  });
+
+  // Keep ref synchronized when currentStrokeIndex changes externally
   useEffect(() => {
-    if (!item || !isPlaying || totalStrokes === 0) return;
+    animStateRef.current.strokeIndex = currentStrokeIndex;
+  }, [currentStrokeIndex]);
 
-    timerRef.current = setTimeout(() => {
-      setCurrentStep((prev) => {
-        if (prev >= totalStrokes) {
-          return 0;
-        }
-        return prev + 1;
-      });
-    }, speed);
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [item, isPlaying, currentStep, speed, totalStrokes]);
-
-  // Reset when item changes
+  // Reset when character item changes
   useEffect(() => {
-    setCurrentStep(0);
+    setCurrentStrokeIndex(0);
+    setStrokeProgress(0);
+    setIsDone(false);
     setIsPlaying(true);
+    animStateRef.current = {
+      lastTime: null,
+      phase: 'drawing',
+      phaseTime: 0,
+      strokeIndex: 0,
+    };
     clearCanvas();
   }, [item]);
+
+  // Directional brushing animation loop
+  useEffect(() => {
+    if (!item || !isPlaying || totalStrokes === 0 || activeTab !== 'animate') return;
+
+    let animFrameId: number;
+    animStateRef.current.lastTime = null;
+
+    const drawDuration = Math.max(300, Math.round(speed * 0.72));
+    const stepPauseDuration = Math.max(80, Math.round(speed * 0.28));
+    const fullPauseDuration = 1200;
+
+    const tick = (time: number) => {
+      if (animStateRef.current.lastTime === null) {
+        animStateRef.current.lastTime = time;
+      }
+      const dt = Math.min(time - animStateRef.current.lastTime, 100);
+      animStateRef.current.lastTime = time;
+
+      animStateRef.current.phaseTime += dt;
+
+      if (animStateRef.current.phase === 'drawing') {
+        const rawP = Math.min(1, animStateRef.current.phaseTime / drawDuration);
+        // Natural calligraphy brush easing (gentle start, swift movement, controlled finish)
+        const easedP = rawP < 0.5 ? 2 * rawP * rawP : 1 - Math.pow(-2 * rawP + 2, 2) / 2;
+        setStrokeProgress(easedP);
+
+        if (animStateRef.current.phaseTime >= drawDuration) {
+          setStrokeProgress(1);
+          animStateRef.current.phase = 'stepPause';
+          animStateRef.current.phaseTime = 0;
+        }
+      } else if (animStateRef.current.phase === 'stepPause') {
+        if (animStateRef.current.phaseTime >= stepPauseDuration) {
+          const currentIdx = animStateRef.current.strokeIndex;
+          if (currentIdx < totalStrokes - 1) {
+            animStateRef.current.strokeIndex = currentIdx + 1;
+            animStateRef.current.phase = 'drawing';
+            animStateRef.current.phaseTime = 0;
+            setCurrentStrokeIndex(currentIdx + 1);
+            setStrokeProgress(0);
+          } else {
+            animStateRef.current.phase = 'fullPause';
+            animStateRef.current.phaseTime = 0;
+            setIsDone(true);
+          }
+        }
+      } else if (animStateRef.current.phase === 'fullPause') {
+        if (animStateRef.current.phaseTime >= fullPauseDuration) {
+          animStateRef.current.strokeIndex = 0;
+          animStateRef.current.phase = 'drawing';
+          animStateRef.current.phaseTime = 0;
+          setIsDone(false);
+          setCurrentStrokeIndex(0);
+          setStrokeProgress(0);
+        }
+      }
+
+      animFrameId = requestAnimationFrame(tick);
+    };
+
+    animFrameId = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(animFrameId);
+    };
+  }, [item, isPlaying, speed, totalStrokes, activeTab]);
+
+  const handleRestart = () => {
+    animStateRef.current = {
+      lastTime: null,
+      phase: 'drawing',
+      phaseTime: 0,
+      strokeIndex: 0,
+    };
+    setIsDone(false);
+    setCurrentStrokeIndex(0);
+    setStrokeProgress(0);
+    setIsPlaying(true);
+  };
+
+  const handleJumpToStroke = (idx: number) => {
+    animStateRef.current = {
+      lastTime: null,
+      phase: 'drawing',
+      phaseTime: 0,
+      strokeIndex: idx,
+    };
+    setIsDone(false);
+    setCurrentStrokeIndex(idx);
+    setStrokeProgress(0);
+    setIsPlaying(true);
+    setActiveTab('animate');
+  };
 
   // Canvas drawing handlers
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
@@ -114,7 +231,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-stone-50">
           <div className="flex items-center gap-3">
-            <span className="text-3xl font-bold font-kaiti text-stone-900">{item.char}</span>
+            <span className={`text-3xl font-bold ${isSansSerif ? 'font-heiti' : 'font-kaiti'} text-stone-900`}>{item.char}</span>
             <div>
               <div className="text-lg font-bold text-red-600 font-mono tracking-wide">{item.pinyin}</div>
               <div className="text-xs text-stone-500">
@@ -172,18 +289,98 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                   <line x1="100" y1="0" x2="0" y2="100" stroke="#94a3b8" strokeWidth="0.8" strokeDasharray="2,2" />
                 </svg>
 
-                {/* Animated strokes */}
+                {/* Animated strokes with authentic directional brushing */}
                 <svg viewBox="0 0 100 100" className="w-full h-full relative z-10">
                   {totalStrokes > 0 ? (
-                    <g transform="translate(7.5, 83.6) scale(0.083, -0.083)">
-                      {strokes.slice(0, currentStep).map((s, idx) => (
-                        <path
-                          key={idx}
-                          d={s}
-                          fill={idx === currentStep - 1 ? '#dc2626' : '#1e293b'}
-                        />
-                      ))}
-                    </g>
+                    <>
+                      {/* SVG Mask for the currently active stroke */}
+                      <defs>
+                        {!isDone && medians[currentStrokeIndex] && (
+                          <mask id="character-brush-mask">
+                            <rect x="-300" y="-300" width="1624" height="1624" fill="black" />
+                            <path
+                              d={medianToSvgPath(medians[currentStrokeIndex])}
+                              stroke="white"
+                              strokeWidth="240"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              fill="none"
+                              strokeDasharray={strokeLengths[currentStrokeIndex] || 800}
+                              strokeDashoffset={((1 - strokeProgress) * (strokeLengths[currentStrokeIndex] || 800))}
+                            />
+                          </mask>
+                        )}
+                      </defs>
+
+                      <g transform="translate(7.5, 83.6) scale(0.083, -0.083)">
+                        {/* Faint complete guide silhouette so learner sees the full target */}
+                        {isSansSerif ? (
+                          <g
+                            stroke="#94a3b8"
+                            strokeWidth="46"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            fill="none"
+                            opacity="0.25"
+                          >
+                            {medians.map((m, idx) => (
+                              <path key={`guide-heiti-${idx}`} d={medianToSvgPath(m)} />
+                            ))}
+                          </g>
+                        ) : (
+                          <g opacity="0.10">
+                            {strokes.map((s, idx) => (
+                              <path key={`guide-kaiti-${idx}`} d={s} fill="#64748b" />
+                            ))}
+                          </g>
+                        )}
+
+                        {/* Completed previous strokes in solid dark ink */}
+                        {isSansSerif ? (
+                          <g
+                            stroke="#1e293b"
+                            strokeWidth="46"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            fill="none"
+                          >
+                            {medians.slice(0, isDone ? totalStrokes : currentStrokeIndex).map((m, idx) => (
+                              <path key={`done-heiti-${idx}`} d={medianToSvgPath(m)} />
+                            ))}
+                          </g>
+                        ) : (
+                          strokes.slice(0, isDone ? totalStrokes : currentStrokeIndex).map((s, idx) => (
+                            <path key={`done-kaiti-${idx}`} d={s} fill="#1e293b" />
+                          ))
+                        )}
+
+                        {/* Active stroke being actively brushed in in correct direction */}
+                        {!isDone && strokes[currentStrokeIndex] && (
+                          isSansSerif ? (
+                            // Sans-serif centerline median drawing in with crisp, modern stroke width
+                            <path
+                              d={medianToSvgPath(medians[currentStrokeIndex])}
+                              stroke="#dc2626"
+                              strokeWidth="46"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              fill="none"
+                              strokeDasharray={strokeLengths[currentStrokeIndex] || 800}
+                              strokeDashoffset={((1 - strokeProgress) * (strokeLengths[currentStrokeIndex] || 800))}
+                              opacity={strokeProgress <= 0.005 ? 0 : 1}
+                            />
+                          ) : (
+                            // Authentic Calligraphy: brushed in along median vector path
+                            <path
+                              d={strokes[currentStrokeIndex]}
+                              mask={strokeProgress >= 0.99 ? undefined : "url(#character-brush-mask)"}
+                              fill="#dc2626"
+                              opacity={strokeProgress <= 0.005 ? 0 : 1}
+                            />
+                          )
+                        )}
+                      </g>
+                    </>
                   ) : (
                     <text
                       x="50"
@@ -191,7 +388,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                       dominantBaseline="central"
                       textAnchor="middle"
                       fontSize="80"
-                      className="font-kaiti fill-stone-900"
+                      className={`${isSansSerif ? 'font-heiti' : 'font-kaiti'} fill-stone-900`}
                     >
                       {item.char}
                     </text>
@@ -200,7 +397,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
 
                 {/* Step pill */}
                 <div className="absolute top-2 right-2 bg-stone-900/80 text-white text-xs px-2.5 py-0.5 rounded-full font-mono">
-                  {currentStep} / {totalStrokes}
+                  {isDone ? totalStrokes : currentStrokeIndex + 1} / {totalStrokes}
                 </div>
               </div>
 
@@ -221,10 +418,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                   )}
                 </button>
                 <button
-                  onClick={() => {
-                    setCurrentStep(0);
-                    setIsPlaying(true);
-                  }}
+                  onClick={handleRestart}
                   className="flex items-center gap-1.5 px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-medium text-sm transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" /> {t.restartBtn}
@@ -253,11 +447,26 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                   <line x1="0" y1="0" x2="100" y2="100" stroke="#64748b" strokeWidth="0.8" strokeDasharray="2,2" />
                   <line x1="100" y1="0" x2="0" y2="100" stroke="#64748b" strokeWidth="0.8" strokeDasharray="2,2" />
                   {strokes.length > 0 ? (
-                    <g transform="translate(7.5, 83.6) scale(0.083, -0.083)">
-                      {strokes.map((s, idx) => (
-                        <path key={idx} d={s} fill="#475569" />
-                      ))}
-                    </g>
+                    isSansSerif ? (
+                      <g
+                        transform="translate(7.5, 83.6) scale(0.083, -0.083)"
+                        stroke="#475569"
+                        strokeWidth="46"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill="none"
+                      >
+                        {medians.map((m, idx) => (
+                          <path key={idx} d={medianToSvgPath(m)} />
+                        ))}
+                      </g>
+                    ) : (
+                      <g transform="translate(7.5, 83.6) scale(0.083, -0.083)">
+                        {strokes.map((s, idx) => (
+                          <path key={idx} d={s} fill="#475569" />
+                        ))}
+                      </g>
+                    )
                   ) : (
                     <text
                       x="50"
@@ -265,7 +474,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                       dominantBaseline="central"
                       textAnchor="middle"
                       fontSize="80"
-                      className="font-kaiti fill-stone-700"
+                      className={`${isSansSerif ? 'font-heiti' : 'font-kaiti'} fill-stone-700`}
                     >
                       {item.char}
                     </text>
@@ -309,13 +518,9 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                 {strokes.map((_, idx) => (
                   <button
                     key={idx}
-                    onClick={() => {
-                      setCurrentStep(idx + 1);
-                      setIsPlaying(false);
-                      setActiveTab('animate');
-                    }}
+                    onClick={() => handleJumpToStroke(idx)}
                     className={`w-9 h-9 border rounded-md flex flex-col items-center justify-center p-0.5 transition-all cursor-pointer ${
-                      currentStep === idx + 1
+                      activeTab === 'animate' && ((!isDone && currentStrokeIndex === idx) || (isDone && idx === totalStrokes - 1))
                         ? 'border-red-600 bg-red-50 shadow-xs ring-1 ring-red-500 text-red-700 font-bold'
                         : 'border-stone-200 hover:border-stone-400 bg-white text-stone-600'
                     }`}
